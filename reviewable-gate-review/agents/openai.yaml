@@ -1,0 +1,7 @@
+interface:
+  display_name: "Reviewable Gate Review"
+  short_description: "差分がレビュー可能か証跡で判定する"
+  default_prompt: "$reviewable-gate-review を使って、この差分が人間レビューまたは専門reviewへ進める状態か判定してください。"
+
+policy:
+  allow_implicit_invocation: false

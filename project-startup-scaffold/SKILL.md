@@ -34,9 +34,16 @@ description: ユーザーが自然文で、AIコーディングエージェン�
    - `docs/work/_template.md`
    - `docs/review/reviewable-gate.md`
    - `docs/verification/smoke-test.md`
-3. 不足すると危険な文書や誤解を生む事実だけ、簡潔に確認質問する。
-4. 下の関連referenceを読み、対応するtemplateを使って文書を作成または更新する。
-5. 最後に次を報告する:
+3. PJの状態に応じて追加文書を提案する:
+   - 検証コマンドが分かる既存repo: `docs/verification/commands.md`
+   - 認証、権限、PII、DB migration、release操作、外部serviceがあるPJ: `docs/review/review-routing.md`
+   - 技術選定、MVP範囲、データ保持、認証方式、外部service選定を残したいPJ: `docs/project/decision-log.md`
+   - AI coding agentを継続利用するPJ: `docs/ai/workflow-map.md`
+   - UIを持つPJ: `docs/project/screen-catalog.md`
+   - visual baselineやscreenshot reviewを早期に使うPJ: `docs/project/screen-contract.md`
+4. 不足すると危険な文書や誤解を生む事実だけ、簡潔に確認質問する。
+5. 下の関連referenceを読み、対応するtemplateを使って文書を作成または更新する。
+6. 最後に次を報告する:
    - 作成または更新した文書
    - `人間が判断する点`
    - `次に小さく試すタスク候補`
@@ -54,6 +61,7 @@ description: ユーザーが自然文で、AIコーディングエージェン�
 - `references/agent-instructions.md`: `AGENTS.md` / `CLAUDE.md` 初稿ルール。
 - `references/work-context.md`: 作業メモと変更説明の雛形。
 - `references/reviewable-gate.md`: レビュー開始条件。
+- UIを持つPJでは `references/requirements-brief.md` と `references/workflow.md` を使い、画面責務とvisual review候補を追加文書へ分ける。
 
 ## 雛形
 
@@ -68,6 +76,12 @@ description: ユーザーが自然文で、AIコーディングエージェン�
 - `change-description.md`
 - `reviewable-gate.md`
 - `smoke-test.md`
+- `verification-commands.md`
+- `review-routing.md`
+- `decision-log.md`
+- `workflow-map.md`
+- `screen-catalog.md`
+- `screen-contract.md`
 
 見出しはrepoの言語や慣習に合わせてよい。ただし、確定事項、仮説、未決事項の分離は維持する。
 

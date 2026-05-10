@@ -16,6 +16,7 @@
 5. 技術嗜好だけでなくRequirementsからArchitectureメモを作る。
 6. PJ境界とAI利用境界が見えてから `AGENTS.md` を下書きする。
 7. 最初の小さなタスク用に、work-context、reviewable-gate、smoke-testのtemplateを作る。
+8. PJの状態に応じて、検証コマンド、review routing、decision log、workflow map、screen catalogを追加する。
 
 ## 最小文書セット
 
@@ -34,6 +35,19 @@ docs/verification/smoke-test.md
 
 repoに既存の文書配置がある場合は、意図を保ったままpathを合わせる。
 
+## 状況に応じた追加文書
+
+- 検証コマンドが分かっている既存repo: `docs/verification/commands.md`
+- 認証、権限、PII、DB migration、release操作、外部serviceがあるPJ: `docs/review/review-routing.md`
+- 技術選定、MVP範囲、データ保持、認証方式、外部service選定を残したいPJ: `docs/project/decision-log.md`
+- AI coding agentを継続的に使うPJ: `docs/ai/workflow-map.md`
+- Web app、mobile app、desktop app、管理画面、UI-heavy tool: `docs/project/screen-catalog.md`
+- visual baseline、screenshot baseline、デザインレビューを早期に使うPJ: `docs/project/screen-contract.md`
+
+`screen-contract.md` は画面責務の初期整理ではなく、変えてよい範囲と変えてはいけない状態を固定したい場合だけ作る。
+
+`environment-boundaries.md` は独立文書にせず、通常は `docs/ai/ai-usage-note.md` へ含める。長い作業のhandoffは、startup文書ではなく `workflow-artifact-handoff` を優先する。
+
 ## 確認質問
 
 文書内容が実際に変わる質問だけをする:
@@ -43,6 +57,9 @@ repoに既存の文書配置がある場合は、意図を保ったままpathを
 - 初回では変更してはいけないものは何か
 - AI利用を禁止するデータや環境は何か
 - build、test、lint、typecheck、local verificationに使える安全なコマンドは何か
+- review ownerや専門reviewが必要になる変更種別は何か
+- 初期判断として残すべき技術選定、MVP範囲、データ保持、外部service選定は何か
+- UIを持つ場合、初期に責務を固定したい画面やrouteは何か
 - GitHub、別のチケットシステム、Markdown作業メモのどれを使うか
 
 ## 完了報告

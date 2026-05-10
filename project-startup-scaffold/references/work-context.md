@@ -6,6 +6,10 @@
 
 作業文脈ファイルは、長いチャット履歴に依存せず、AIエージェントと人間が作業を継続できるだけのタスク単位の情報を保持する。
 
+検証コマンドのsource of truthが別文書にあるPJでは、作業文脈の `検証コマンド` には実行したcommandと結果を記録し、候補一覧は `docs/verification/commands.md` へ寄せる。
+
+共通workflowの使い分けがPJ内で迷いやすい場合は、`docs/ai/workflow-map.md` を作り、作業文脈から次workflowへ渡す成果物を対応づける。
+
 ## 作業文脈のセクション
 
 - `目的`
@@ -42,4 +46,6 @@
 - 事実と仮説を分ける。
 - verificationを実行した場合は、正確なcommandとresultを記録する。
 - 未実行のcheckは、理由とriskを添えて記録する。
+- 検証候補の一覧や権限要否は、作業文脈へ複製しすぎず `verification-commands.md` を参照する。
+- 次workflowへのhandoffが必要な場合は、作業文脈内の要約か `workflow-artifact-handoff` を使い、長い会話履歴を前提にしない。
 - secrets、顧客データ、本番ログを保存しない。

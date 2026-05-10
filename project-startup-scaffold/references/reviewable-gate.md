@@ -6,6 +6,8 @@
 
 Reviewable Gateは、差分を人間レビューまたは独立レビューへ進めてよい条件を定義します。失敗中のテストや不明な検証がある差分は、レビュー可能ではなく作業途中として扱います。
 
+`review-routing.md` は、どの種類の差分を誰が見るか、専門reviewや人間判断が必要かを分ける文書です。Reviewable Gateはレビュー開始条件、Review Routingはレビュー先と判断境界を扱います。
+
 ## 標準gate項目
 
 - build、compile、または同等のPJ検証が成功している。
@@ -32,3 +34,4 @@ Reviewable Gateは、差分を人間レビューまたは独立レビューへ�
 - すべてのtaskで使える大きさに保つ。
 - gateを完全なリリースチェックリストにしない。
 - review可能状態と本番release判断を分ける。
+- 認証、権限、PII、DB migration、release操作、外部serviceがあるPJでは、Reviewable Gateだけに詰め込まず `review-routing.md` を別に作る。

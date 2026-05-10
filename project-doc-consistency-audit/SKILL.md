@@ -98,7 +98,8 @@ audit目的に応じて、次のうち関係するものを確認します。す
 - 事実不足、実装との食い違いが原因: `investigation-workflow`
 - 期待動作、scope、非対象範囲、テスト方針の整理が必要: `implementation-plan-gate`
 - 人間の仕様判断、risk acceptance、scope決定が必要: `decision-clarification-workflow` または human decision
-- 文書更新方針を別途計画したい: future doc update plan workflow
+- 文書更新方針を別途計画したい: `implementation-plan-gate` または human decision
+- repo-local docsを共通workflowへ寄せる移行対応表が必要: `repo-workflow-migration-plan`
 - repo内skillやagentの整合問題: `repo-skill-audit`
 - 追加対応なし: no action
 
@@ -148,7 +149,7 @@ audit_status: pass / findings / blocked
 
 ## Next Step
 
-- no action / investigation-workflow / implementation-plan-gate / decision-clarification-workflow / repo-skill-audit / human decision
+- no action / investigation-workflow / implementation-plan-gate / decision-clarification-workflow / repo-skill-audit / repo-workflow-migration-plan / human decision
 ```
 
 ## 禁止事項

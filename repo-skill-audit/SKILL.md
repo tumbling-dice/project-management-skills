@@ -14,6 +14,7 @@ description: ユーザーが自然文で、repo内の AGENTS.md、.codex/skills�
 - GitHub公開前に、ローカルフルパス、secret、環境依存の記述を点検したい。
 - reviewable gate、specialist reviewer、test_runner、verification手順のroutingを確認したい。
 - repo内skillが増え、重複や責務の混線を整理したい。
+- repo内運用資産を共通workflowへ寄せる前に、役割境界、配布性、安全条件を点検したい。
 
 ## 使わない場面
 
@@ -21,6 +22,7 @@ description: ユーザーが自然文で、repo内の AGENTS.md、.codex/skills�
 - 検証コマンドを実行する場合。
 - review判定や専門reviewを行う場合。
 - 新しいrepo内skillやagentをscaffoldする場合。その場合は該当するscaffold skillを使います。
+- 削除、委譲、残置、分解、共通側不足の対応表を作る場合。その場合は `repo-workflow-migration-plan` を使います。
 
 ## 入力
 
@@ -51,6 +53,7 @@ description: ユーザーが自然文で、repo内の AGENTS.md、.codex/skills�
 - `investigation-workflow`、`implementation-plan-gate`、`implementation-execution-workflow`、`verification-workflow`、`reviewable-gate-review` への戻り先が明確か。
 - `decision-clarification-workflow` へ渡す人間判断が整理されているか。
 - `post-review-fix-triage` や `workflow-artifact-handoff` が必要な場面がないか。
+- 共通workflowへの移行対応表が必要な場合、`repo-workflow-migration-plan` へ戻すべきか。
 
 ### 配布性
 
@@ -133,7 +136,7 @@ audit_status: pass / findings / blocked
 
 ## Next Step
 
-- no action / skill update / agent update / AGENTS.md update / verification-workflow / test-runner-scaffold / specialist-reviewer-scaffold / decision-clarification-workflow / human decision
+- no action / skill update / agent update / AGENTS.md update / repo-workflow-migration-plan / verification-workflow / test-runner-scaffold / specialist-reviewer-scaffold / decision-clarification-workflow / human decision
 ```
 
 ## 禁止事項

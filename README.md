@@ -54,6 +54,7 @@ Windows では symlink を使わず copy します。既存pathがある場合�
 - `specialist-reviewer-scaffold`: repo固有の専門reviewer、reviewable gate agent、review routingを整備する依頼
 - `project-doc-consistency-audit`: README、AGENTS、PJ文書、検証手順、review条件の矛盾や古い前提を点検する依頼
 - `repo-skill-audit`: repo内skill、custom agent、AGENTS、review routing、検証手順の整合を点検する依頼
+- `repo-workflow-migration-plan`: 成熟済みrepo内の運用docs、repo-local skill、custom agent、review routing、検証手順を共通workflowへ寄せる移行計画を作る依頼
 
 自然発火を許可する場合でも、実装、検証、review判定などの厳密な工程workflowを代替しません。ユーザー依頼がそのskillの判断整理、成果物、点検目的に直接一致する場合だけ使います。
 
@@ -97,6 +98,7 @@ reviewable gateはrepo内にscaffoldされた reviewable gate用custom agentへ�
 | `specialist-reviewer-scaffold` | `reviewable-gate-review` を補完する repo 固有の専門 review skill や custom agent を設計、提案、作成します。 |
 | `test-runner-scaffold` | repo 内に検証専用の `test_runner` custom agent と、agent が読む repo 固有の検証手順を作ります。 |
 | `repo-skill-audit` | repo 内の AGENTS.md、`.codex/skills`、`.codex/agents`、review routing、検証手順を点検し、役割重複や危険な権限漏れを見つけます。 |
+| `repo-workflow-migration-plan` | 成熟済みrepo内の運用docs、repo-local skill、custom agent、review routing、検証手順を、共通workflowへ委譲・削除・残置・分解する計画に整理します。 |
 
 ### Subagent Contract
 
@@ -284,7 +286,23 @@ current artifacts
 4. blocking / high finding を先に直す順序を整理します。
 5. 修正が必要なら、該当する scaffold skill や workflow へ戻します。
 
-### 8. PJ文書群を実装計画の根拠として点検する
+### 8. 成熟済みrepoの運用資産を共通workflowへ寄せる
+
+候補 workflow:
+
+- `repo-workflow-migration-plan`
+- 必要に応じて `repo-skill-audit`
+- 必要に応じて `project-doc-consistency-audit`
+
+流れ:
+
+1. `workflow-router` で、公開前点検ではなく移行対応表の作成が目的かを判定します。
+2. AGENTS.md、docs、repo-local skill、custom agent、review routing、verification docs、代表的な作業メモを対象にします。
+3. 既存資産ごとに `delete`、`delegate-to-common`、`keep-repo-local`、`split`、`needs-common-template`、`blocked-human-decision` へ分類します。
+4. 共通workflowへの移行先、repo側へ薄く残す内容、参照更新順、削除前の逆参照確認を整理します。
+5. 共通側不足を提案する場合でも、repo固有コマンド、reviewer名、app固有ルールは共通skillへ混ぜません。
+
+### 9. PJ文書群を実装計画の根拠として点検する
 
 候補 workflow / agent:
 
@@ -309,6 +327,7 @@ current artifacts
 - repo内reviewable gate agentは `reviewable-gate-review` を実行し、レビュー可能条件と routing を判定します。repo 固有の深い設計判断を単独では承認しません。
 - バグ修正や実装の根拠になる要件、設計、検証手順、AGENTS、review条件は、調査と計画の段階で根拠資料として確認します。文書と実態が食い違う場合は、実装へ進む前に更新、追加調査、人間判断のいずれへ戻すかを決めます。
 - `project-doc-consistency-audit` は文書群を点検します。文書更新、実装、検証、review判定は行いません。
+- `repo-workflow-migration-plan` は成熟済みrepoの運用資産を共通workflowへ寄せる対応表を作ります。移行対象ファイルの削除、移動、編集、検証、review判定は行いません。
 - `workflow-router` と `project-doc-consistency-audit` は、この共通repoの `workflow_router`、`project_doc_auditor` custom agentで実行します。`verification-workflow` と `reviewable-gate-review` は、各repo内にscaffoldされた `test_runner` とreviewable gate用custom agentで実行します。Main Agentは同一agent内で代替実行しません。
 
 ## 運用メモ

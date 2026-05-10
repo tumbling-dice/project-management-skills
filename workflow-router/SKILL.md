@@ -64,6 +64,7 @@ description: ユーザー依頼、作業状況、既存成果物、差分、revi
 | repo内に検証専用 `test_runner` と検証手順を作りたい | `test-runner-scaffold` |
 | repo内にreviewable gate agent、専門reviewer、review routingを作りたい | `specialist-reviewer-scaffold` |
 | repo内skill、agent、AGENTS.md、routing、検証手順を点検したい | `repo-skill-audit` |
+| 成熟済みrepo内の運用docs、repo-local skill、custom agent、review routing、検証手順を共通workflowへ寄せる移行計画を作りたい | `repo-workflow-migration-plan` |
 
 ## 判定手順
 
@@ -92,6 +93,7 @@ description: ユーザー依頼、作業状況、既存成果物、差分、revi
 - 次agentや次sessionへ渡すこと自体が目的なら、対象workflowを実行せず `workflow-artifact-handoff` を選びます。
 - repo固有agentやrepo固有skillが未整備で作成が目的なら、実行workflowではなく該当するscaffoldを選びます。
 - 公開前点検や整合確認が目的なら、修正せず `repo-skill-audit` を選びます。
+- 既存のrepo内運用資産を共通workflowへ寄せるため、削除、委譲、残置、分解、共通側不足の対応表が必要なら、修正せず `repo-workflow-migration-plan` を選びます。
 
 ## 出力形式
 

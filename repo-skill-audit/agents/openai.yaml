@@ -4,4 +4,4 @@ interface:
   default_prompt: "$repo-skill-audit を使って、このrepo内のAGENTS.md、.codex/skills、.codex/agents、review routing、検証手順の整合を点検してください。"
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

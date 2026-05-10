@@ -4,4 +4,4 @@ interface:
   default_prompt: "$test-runner-scaffold を使って、このrepoに検証専用の test_runner custom agent とrepo固有の検証手順を提案してください。"
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

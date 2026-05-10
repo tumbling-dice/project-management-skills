@@ -1,6 +1,6 @@
 ---
 name: repo-skill-audit
-description: このskillは workflow-router のrouting結果、またはユーザーが $repo-skill-audit を明示した場合だけ使う。通常依頼から直接発火しない。repo内の AGENTS.md、.codex/skills、.codex/agents、review routing、検証手順を点検し、共通skillとの役割重複、routing不整合、ローカルフルパス混入、古い検証コマンド、危険な権限や禁止操作漏れを見つける。修正は行わず、必要な更新候補と戻り先を整理する。
+description: ユーザーが自然文で、repo内の AGENTS.md、.codex/skills、.codex/agents、review routing、検証手順の整合、公開前確認、役割重複、ローカルフルパス、古い検証コマンド、危険な権限や禁止操作漏れを点検したいと頼んだ場合に使う。workflow-router のrouting結果、または $repo-skill-audit の明示でも使う。修正は行わず、必要な更新候補と戻り先を整理する。
 ---
 
 # Repo Skill Audit

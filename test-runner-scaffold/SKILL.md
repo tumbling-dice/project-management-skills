@@ -1,6 +1,6 @@
 ---
 name: test-runner-scaffold
-description: このskillは workflow-router のrouting結果、またはユーザーが $test-runner-scaffold を明示した場合だけ使う。通常依頼から直接発火しない。repo内に検証専用の test_runner custom agent と、そのagentが読むrepo固有の検証手順を作るための共通scaffold。repoの検証コマンド、sandbox権限、artifact、timeout、失敗時の戻り先を調査し、repo内agent定義やverification skill / docsを提案または作成する。検証そのものや修正は行わない。
+description: ユーザーが自然文で、repo内に検証専用の test_runner custom agent を作りたい、テストやlintを別agentに任せる準備をしたい、repo固有の検証手順を整備したいと頼んだ場合に使う。workflow-router のrouting結果、または $test-runner-scaffold の明示でも使う。repoの検証コマンド、sandbox権限、artifact、timeout、失敗時の戻り先を調査し、repo内agent定義やverification skill / docsを提案または作成する。検証そのものや修正は行わない。
 ---
 
 # Test Runner Scaffold

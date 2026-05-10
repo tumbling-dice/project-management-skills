@@ -1,6 +1,6 @@
 ---
 name: project-startup-scaffold
-description: このskillは workflow-router のrouting結果、またはユーザーが $project-startup-scaffold を明示した場合だけ使う。通常依頼から直接発火しない。AIコーディングエージェントを使う新規PJ、または文書が少ない既存PJの立ち上げ時に、PJ初期コンテキスト、AI利用ルール、AGENTS.md、作業メモ雛形、Reviewable Gate、初期検証文書を作る。通常の実装、コードレビュー、成熟済みPJの計画更新には使わない。
+description: ユーザーが自然文で、AIコーディングエージェント向けの新規PJ立ち上げ、文書が少ない既存PJの初期整備、AGENTS.md、AI利用ルール、作業メモ雛形、Reviewable Gate、初期検証文書の作成を頼んだ場合に使う。workflow-router のrouting結果、または $project-startup-scaffold の明示でも使う。通常の実装、コードレビュー、成熟済みPJの計画更新には使わない。
 ---
 
 # プロジェクト立ち上げScaffold

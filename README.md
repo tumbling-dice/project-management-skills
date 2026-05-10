@@ -46,6 +46,17 @@ Windows では symlink を使わず copy します。既存pathがある場合�
 - `workflow-router` の routing 結果で選ばれた場合
 - ユーザーが `$investigation-workflow` のように skill 名を明示した場合
 
+ただし、ユーザーが自然文で判断整理、成果物作成、点検そのものを直接頼みやすい補助 / scaffold / audit 系 skill は、自然発火を許可します。
+
+- `decision-clarification-workflow`: blocked理由、未確認事項、人間判断待ちを少数の判断質問へ整理する依頼
+- `project-startup-scaffold`: AI利用開始の初期文書、AGENTS、作業メモ雛形、Reviewable Gateを作る依頼
+- `test-runner-scaffold`: repo内 `test_runner` agent や検証手順を整備する依頼
+- `specialist-reviewer-scaffold`: repo固有の専門reviewer、reviewable gate agent、review routingを整備する依頼
+- `project-doc-consistency-audit`: README、AGENTS、PJ文書、検証手順、review条件の矛盾や古い前提を点検する依頼
+- `repo-skill-audit`: repo内skill、custom agent、AGENTS、review routing、検証手順の整合を点検する依頼
+
+自然発火を許可する場合でも、実装、検証、review判定などの厳密な工程workflowを代替しません。ユーザー依頼がそのskillの判断整理、成果物、点検目的に直接一致する場合だけ使います。
+
 `workflow-router` は routing 結果を会話で返すだけで、ファイル作成、ファイル更新、実装、検証、レビュー判定は行いません。
 
 `workflow_router` custom agent が使えない場合、Main Agent は同一agentで代替routingせず、必要なagentが無いことを報告して停止します。代替routingは、このskill群自体の開発・検証で明示された場合だけです。

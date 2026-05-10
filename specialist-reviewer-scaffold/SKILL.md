@@ -1,6 +1,6 @@
 ---
 name: specialist-reviewer-scaffold
-description: このskillは workflow-router のrouting結果、またはユーザーが $specialist-reviewer-scaffold を明示した場合だけ使う。通常依頼から直接発火しない。reviewable-gate-review を実行するrepo-local custom agentと、それを補完するrepo固有の専門review skillやcustom agent定義を作る。repo構成、既存AGENTS.md、.codex/skills、.codex/agents、リスク領域を調査し、責務・リスク・入力証跡ベースでreviewable gate agent、専門reviewer候補、routing文書、repo内skill、custom agent定義を提案または作成する。
+description: ユーザーが自然文で、repo固有の専門reviewer、reviewable gate用custom agent、専門review routing、review用skillやagent定義を作りたいと頼んだ場合に使う。workflow-router のrouting結果、または $specialist-reviewer-scaffold の明示でも使う。repo構成、既存AGENTS.md、.codex/skills、.codex/agents、リスク領域を調査し、責務・リスク・入力証跡ベースでreviewable gate agent、専門reviewer候補、routing文書、repo内skill、custom agent定義を提案または作成する。差分そのもののreviewには使わない。
 ---
 
 # Specialist Reviewer Scaffold

@@ -1,6 +1,6 @@
 ---
 name: decision-clarification-workflow
-description: このskillは workflow-router のrouting結果、またはユーザーが $decision-clarification-workflow を明示した場合だけ使う。通常依頼から直接発火しない。各workflow成果物にある未確認事項、blocked理由、人間判断待ち、リスク受容点を、実装やレビューを止めている少数の判断質問へ変換する。仕様決定、実装、レビュー判定、検証実行は行わない。
+description: ユーザーが自然文で、既存の調査結果、実装計画、review結果、blocked理由、未確認事項、人間判断待ちを、次へ進むための少数の判断質問へ整理したいと頼んだ場合に使う。workflow-router のrouting結果、または $decision-clarification-workflow の明示でも使う。仕様決定、実装、レビュー判定、検証実行は行わない。単なる仕様相談、要件整理、実装依頼には使わない。
 ---
 
 # Decision Clarification Workflow

@@ -4,4 +4,4 @@ interface:
   default_prompt: "$decision-clarification-workflow を使って、未確認事項やblocked理由を人間が答えやすい少数の判断質問へ整理してください。"
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

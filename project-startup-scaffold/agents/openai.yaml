@@ -4,4 +4,4 @@ interface:
   default_prompt: "$project-startup-scaffold を使って、このrepoでAI利用を始めるための初期文書を作ってください。"
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

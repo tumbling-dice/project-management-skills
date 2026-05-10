@@ -1,6 +1,6 @@
 ---
 name: project-doc-consistency-audit
-description: このskillは workflow-router のrouting結果、またはユーザーが $project-doc-consistency-audit を明示した場合だけ使う。通常依頼から直接発火しない。project-startup-scaffold で作るPJ文書群、README、AGENTS、検証手順、review条件、代表的な作業メモを横断し、文書同士の矛盾、古い前提、未決事項の放置、実装や検証手順との食い違いを見つけるaudit workflow。修正は行わず、根拠資料として使える状態か、戻り先と更新候補を整理する。
+description: ユーザーが自然文で、README、AGENTS、PJ文書、検証手順、review条件、作業メモの矛盾、古い前提、未決事項、実装や検証手順との食い違いを点検したいと頼んだ場合に使う。workflow-router のrouting結果、または $project-doc-consistency-audit の明示でも使う。実PJでは project_doc_auditor custom agentへ委譲する。修正は行わず、根拠資料として使える状態か、戻り先と更新候補を整理する。
 ---
 
 # Project Doc Consistency Audit

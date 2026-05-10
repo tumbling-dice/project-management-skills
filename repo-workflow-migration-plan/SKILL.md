@@ -20,7 +20,7 @@ description: ユーザーが自然文で、成熟済みrepo内の AGENTS.md、do
 - 文書の矛盾や古い前提だけを点検する場合。その場合は `project-doc-consistency-audit` を使います。
 - repo内skill、agent、AGENTS、検証手順の危険な権限や配布性だけを点検する場合。その場合は `repo-skill-audit` を使います。
 - 新規PJや文書が薄い既存PJの初期文書を作る場合。その場合は `project-startup-scaffold` を使います。
-- コード変更の実装計画を作る場合。その場合は `implementation-plan-gate` を使います。
+- コード変更の実装前調査と計画を作る場合。その場合は `implementation-prep-workflow` を使います。
 - 実際にファイル削除、移動、編集、検証実行、review判定を行う場合。
 
 ## 入力
@@ -55,8 +55,7 @@ description: ユーザーが自然文で、成熟済みrepo内の AGENTS.md、do
 1. 移行目的、対象repo、対象資産、非対象範囲を確認する。
 2. 現在の共通workflow受け皿を整理する。
    - `project-startup-scaffold`
-   - `investigation-workflow`
-   - `implementation-plan-gate`
+   - `implementation-prep-workflow`
    - `implementation-execution-workflow`
    - `verification-workflow`
    - `reviewable-gate-review`

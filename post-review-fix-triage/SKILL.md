@@ -17,8 +17,7 @@ description: このskillは workflow-router のrouting結果、またはユー�
 ## 使わない場面
 
 - 指摘を実装する場合。その場合は `implementation-execution-workflow` へ戻します。
-- 新しい実装計画を作る場合。その場合は `implementation-plan-gate` を使います。
-- 追加調査を行う場合。その場合は `investigation-workflow` を使います。
+- 新しい実装前調査と計画を作る場合。その場合は `implementation-prep-workflow` を使います。
 - review判定そのものを行う場合。その場合は `reviewable-gate-review` を使います。
 - 人間の代わりにrisk acceptance、security、release、scope拡張を承認する場合。
 
@@ -82,8 +81,8 @@ description: このskillは workflow-router のrouting結果、またはユー�
 
 - `ready_for_fix`: 少なくとも1件の `fix-in-plan` があり、その修正scopeを安全に切り出せる。別の指摘が `re-plan`、`human-decision`、`verify-only`、`non-blocking` に分かれていても、Fix Packetに混ぜずBlocked Itemsへ分離できていれば使えます。
 - `blocked`: 入力不足、指摘の矛盾、承認不足により、実装へ戻すFix Packetを安全に作れない。
-- `ready_for_plan`: 主な戻り先が `implementation-plan-gate`。
-- `ready_for_investigation`: 主な戻り先が `investigation-workflow`。
+- `ready_for_plan`: 主な戻り先が `implementation-prep-workflow`。
+- `ready_for_investigation`: 主な戻り先が `implementation-prep-workflow`。
 - `needs_human_decision`: 主な戻り先が人間判断または `decision-clarification-workflow`。
 
 ## 出力形式
@@ -136,7 +135,7 @@ triage_status: ready_for_fix / blocked / ready_for_plan / ready_for_investigatio
 
 ## Next Step
 
-- implementation-execution-workflow / verification-workflow / implementation-plan-gate / investigation-workflow / specialist review / workflow-artifact-handoff / decision-clarification-workflow / human decision
+- implementation-execution-workflow / verification-workflow / implementation-prep-workflow / specialist review / workflow-artifact-handoff / decision-clarification-workflow / human decision
 ```
 
 ## 禁止事項

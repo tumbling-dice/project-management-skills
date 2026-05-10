@@ -1,7 +1,0 @@
-interface:
-  display_name: "Implementation Plan Gate"
-  short_description: "調査結果から修正開始前の計画を作る"
-  default_prompt: "$implementation-plan-gate を使って、調査コンテクストをもとに修正開始前の実装計画と人間レビュー観点を作ってください。"
-
-policy:
-  allow_implicit_invocation: false

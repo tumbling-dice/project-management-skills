@@ -51,14 +51,14 @@ description: ユーザー依頼、作業状況、既存成果物、差分、revi
 | 状況 | 次に使うskill |
 | --- | --- |
 | 新規PJ、文書が薄い既存PJ、AI利用ルールや初期文書を作りたい | `project-startup-scaffold` |
-| 実装前に原因、影響範囲、既存パターンを調べたい | `investigation-workflow` |
-| 調査結果や一時コンテキストから実装計画を作りたい | `implementation-plan-gate` |
+| 実装前に原因、影響範囲、既存パターンを調べ、修正開始前の計画まで作りたい | `implementation-prep-workflow` |
+| 調査から計画まで進め、最後に人間判断だけを確認したい | `implementation-prep-workflow` |
 | blocked理由や人間判断待ちを質問へ絞りたい | `decision-clarification-workflow` |
 | 人間承認済み計画があり、実装と対応テストへ進みたい | `implementation-execution-workflow` |
 | 実装後に検証範囲を確定し、検証証跡を作りたい | `verification-workflow` |
 | 差分が人間reviewや専門reviewへ進める状態か見たい | `reviewable-gate-review` |
 | review指摘を修正、再検証、再計画、調査、人間判断へ分類したい | `post-review-fix-triage` |
-| バグ修正や実装の根拠になる要件、設計、検証手順、AGENTS、review条件を確認したい | `investigation-workflow` / `implementation-plan-gate` |
+| バグ修正や実装の根拠になる要件、設計、検証手順、AGENTS、review条件を確認したい | `implementation-prep-workflow` |
 | PJ文書群の矛盾、古い前提、未決事項、実装や検証手順との食い違いを点検したい | `project-doc-consistency-audit` |
 | 長い作業文脈や成果物を次workflowへ渡すpacketにしたい | `workflow-artifact-handoff` |
 | repo内に検証専用 `test_runner` と検証手順を作りたい | `test-runner-scaffold` |
@@ -77,17 +77,18 @@ description: ユーザー依頼、作業状況、既存成果物、差分、revi
    - 調査結果、計画、実装証跡、検証証跡、review結果、triage結果、handoff packet。
 4. Routing Tableから、次に実行すべきskillを1つ選ぶ。
    - 1つに絞れない場合は、主要候補と代替候補を分ける。
-   - 実行順が必要な場合は、最小のsequenceを返す。
+   - ユーザーが「全部」「一括」「最後に確認事項」のように実装前の複数段階を求めている場合は、`implementation-prep-workflow` をprimary skillにします。
 5. 次skillへ渡す入力、足りない入力、止まる条件をまとめる。
 
 ## 優先順位
 
-- 計画未承認なら、実装へ進まず `implementation-plan-gate`、`decision-clarification-workflow`、または human decision へ戻します。
-- 実装前に事実不足があるなら、計画より先に `investigation-workflow` を選びます。
+- 計画未承認なら、実装へ進まず `implementation-prep-workflow`、`decision-clarification-workflow`、または human decision へ戻します。
+- 実装前に事実不足、計画不足、ドキュメント根拠不足があるなら `implementation-prep-workflow` を選びます。
+- ユーザーが最後に確認事項を求めているなら、`implementation-prep-workflow` の最後に人間が答えるべき判断だけを `decision-clarification-workflow` の形式で整理します。確認事項がない場合は、質問数0として報告します。
 - `verification-workflow` が必要だがrepo内 `test_runner` が未整備なら、検証へ進まず `test-runner-scaffold` を選びます。
 - 実装済みで検証証跡がないなら、reviewより先に `verification-workflow` を選びます。
 - `reviewable-gate-review` が必要だがrepo内reviewable gate agentが未整備なら、review判定へ進まず `specialist-reviewer-scaffold` を選びます。
-- 調査や計画にドキュメント根拠がなく、期待動作やscopeの根拠が弱いなら、実装やreviewより先に `investigation-workflow` または `implementation-plan-gate` へ戻します。
+- 調査や計画にドキュメント根拠がなく、期待動作やscopeの根拠が弱いなら、実装やreviewより先に `implementation-prep-workflow` へ戻します。
 - 文書群そのものの整合、古い前提、未決事項、実装や検証手順との食い違いを横断点検する依頼なら、実装や計画を始めず `project-doc-consistency-audit` を選びます。
 - review指摘が複数混ざっているなら、直接実装せず `post-review-fix-triage` を選びます。
 - 次agentや次sessionへ渡すこと自体が目的なら、対象workflowを実行せず `workflow-artifact-handoff` を選びます。

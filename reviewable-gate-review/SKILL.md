@@ -105,10 +105,10 @@ NG理由に応じて戻り先を明記します。
 
 - 検証未実行: `verification-workflow`
 - 実装ミス候補: `implementation-execution-workflow`
-- テスト不足、テスト方針不足: `implementation-plan-gate`
-- ドキュメント根拠不足または文書不整合: `implementation-plan-gate` または `investigation-workflow`
+- テスト不足、テスト方針不足: `implementation-prep-workflow`
+- ドキュメント根拠不足または文書不整合: `implementation-prep-workflow`
 - テスト削除、skip、assertion弱体化、snapshot大量更新で通している場合: `implementation-execution-workflow`
-- 調査不足、影響範囲漏れ: `investigation-workflow`
+- 調査不足、影響範囲漏れ: `implementation-prep-workflow`
 - 非対象範囲変更、security、privacy、release判断: human decision または specialist review
 
 戻り先が複数ある場合は、blocking issueごとに分けて書きます。
@@ -185,7 +185,7 @@ status: pass / needs-specialist-review / blocked
 
 ## 次の戻り先
 
-- verification-workflow / implementation-execution-workflow / implementation-plan-gate / investigation-workflow / decision-clarification-workflow / specialist review / human decision
+- verification-workflow / implementation-execution-workflow / implementation-prep-workflow / decision-clarification-workflow / specialist review / human decision
 ```
 
 ## 禁止事項

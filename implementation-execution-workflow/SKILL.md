@@ -9,7 +9,7 @@ description: このskillは workflow-router のrouting結果、またはユー�
 
 ## 使う場面
 
-- `implementation-plan-gate` で作成した計画が人間に承認され、修正開始が許可された。
+- `implementation-prep-workflow` で作成した計画が人間に承認され、修正開始が許可された。
 - 承認済み計画の範囲内で、実装修正と対応テスト追加・更新を進めたい。
 - 実装者として、差分、テスト、検証結果、未実行理由、残懸念を整理したい。
 - 実装後に `reviewable-gate-review` を呼び、blocking issue があれば修正と再検証を繰り返したい。
@@ -17,8 +17,7 @@ description: このskillは workflow-router のrouting結果、またはユー�
 ## 使わない場面
 
 - 計画が未承認の場合。先に人間レビューと承認を得ます。
-- 調査結果や影響範囲が不足している場合。先に `investigation-workflow` へ戻します。
-- 実装計画を作る段階。その場合は `implementation-plan-gate` を使います。
+- 調査結果、影響範囲、実装計画が不足している場合。先に `implementation-prep-workflow` へ戻します。
 - 実装者から独立したreviewだけを単独で行う段階。その場合は `reviewable-gate-review` を直接使います。
 - 検証専用の `test_runner` custom agentやrepo内検証手順を作る段階。その場合は `test-runner-scaffold` を使います。
 - repo固有の専門reviewerを作る段階。その場合は `specialist-reviewer-scaffold` を使います。
@@ -73,8 +72,7 @@ description: このskillは workflow-router のrouting結果、またはユー�
    - 承認済み計画のコマンドが環境理由で実行できない場合、repo内 `test_runner` はrepo手順や実行環境で明らかな同等コマンドを補助検証として実行してもよい。ただし、元の計画コマンドの失敗または未実行を隠さず記録し、同等扱いが承認されていない限り `pass` や `completed` の根拠にしない。
 7. 失敗時の扱いを決める。
    - 実装差分に起因する失敗は、計画範囲内で修正して再検証する。
-   - 計画、テスト方針、検証範囲の不足なら `implementation-plan-gate` へ戻す。
-   - 原因不明や影響範囲不足なら `investigation-workflow` へ戻す。
+   - 計画、テスト方針、検証範囲、原因、影響範囲の不足なら `implementation-prep-workflow` へ戻す。
    - 権限、secret、外部service、破壊的操作、risk acceptanceが必要なら人間判断へ戻す。
 8. `reviewable-gate-review` を呼び出す。
    - 必ずrepo内にscaffoldされた reviewable gate用custom agentへ委譲する。
@@ -207,7 +205,7 @@ execution_status: completed / partial / blocked
 
 ## Next Step
 
-- human review / specialist review / verification-workflow / implementation-plan-gate / investigation-workflow / human decision
+- human review / specialist review / verification-workflow / implementation-prep-workflow / human decision
 ```
 
 ## 禁止事項

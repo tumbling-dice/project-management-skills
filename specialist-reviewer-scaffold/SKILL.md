@@ -165,8 +165,7 @@ routing文書またはAGENTS.md追記には、次を含めます。
 
 - 検証未実行: `verification-workflow` またはrepo内の `test_runner`
 - 実装ミス候補: `implementation-execution-workflow`
-- テスト方針不足: `implementation-plan-gate`
-- 調査不足: `investigation-workflow`
+- テスト方針不足、調査不足: `implementation-prep-workflow`
 - 非対象範囲、security、release判断: human decision
 
 ## 禁止事項

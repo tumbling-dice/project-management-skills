@@ -19,7 +19,7 @@ description: ユーザーが自然文で、README、AGENTS、PJ文書、検証�
 ## 使う場面
 
 - `project-startup-scaffold` で作った文書群を、実装前の根拠として使えるか確認したい。
-- `investigation-workflow` や `implementation-plan-gate` で、文書不整合候補が見つかった。
+- `implementation-prep-workflow` で、文書不整合候補が見つかった。
 - バグ修正や仕様変更の前に、要件、設計、AGENTS、検証手順、review条件が食い違っていないか見たい。
 - README、PJ文書、AGENTS、検証docs、review docs、作業メモのどれを信じてよいか整理したい。
 - 長く更新されていない文書や、未決事項が放置されていないか確認したい。
@@ -29,7 +29,7 @@ description: ユーザーが自然文で、README、AGENTS、PJ文書、検証�
 - 監査ではなく、文書の新規設計や大きな再構成そのものが主目的の場合。
 - 実装、テスト更新、検証実行、review判定を行う場合。
 - repo内skillやcustom agentの整合を点検する場合。その場合は `$repo-skill-audit` を使います。
-- 実装計画を作る場合。その場合は `implementation-plan-gate` を使います。
+- 実装前の調査と計画を作る場合。その場合は `implementation-prep-workflow` を使います。
 
 ## 入力
 
@@ -108,10 +108,9 @@ audit目的に応じて、次のうち関係するものを確認します。す
 
 ## 戻り先
 
-- 事実不足、実装との食い違いが原因: `investigation-workflow`
-- 期待動作、scope、非対象範囲、テスト方針の整理が必要: `implementation-plan-gate`
+- 事実不足、実装との食い違い、期待動作、scope、非対象範囲、テスト方針の整理が必要: `implementation-prep-workflow`
 - 人間の仕様判断、risk acceptance、scope決定が必要: `decision-clarification-workflow` または human decision
-- 文書更新方針を別途計画したい: `implementation-plan-gate` または human decision
+- 文書更新方針を別途計画したい: `implementation-prep-workflow` または human decision
 - repo-local docsを共通workflowへ寄せる移行対応表が必要: `repo-workflow-migration-plan`
 - repo内skillやagentの整合問題: `repo-skill-audit`
 - 追加対応なし: no action
@@ -171,7 +170,7 @@ audit_status: pass / findings / blocked
 
 ## Next Step
 
-- no action / investigation-workflow / implementation-plan-gate / decision-clarification-workflow / repo-skill-audit / repo-workflow-migration-plan / human decision
+- no action / implementation-prep-workflow / decision-clarification-workflow / repo-skill-audit / repo-workflow-migration-plan / human decision
 ```
 
 ## 禁止事項

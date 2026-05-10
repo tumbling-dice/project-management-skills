@@ -9,7 +9,7 @@ description: このskillは workflow-router のrouting結果、またはユー�
 
 ## 使う場面
 
-- 調査結果を `implementation-plan-gate` へ渡したい。
+- 実装前準備の成果物を `implementation-prep-workflow` または後続workflowへ渡したい。
 - 承認済み計画を `implementation-execution-workflow` へ渡したい。
 - 実装証跡と検証証跡を `reviewable-gate-review` へ渡したい。
 - review指摘を `post-review-fix-triage` または `implementation-execution-workflow` へ渡したい。
@@ -48,7 +48,7 @@ description: このskillは workflow-router のrouting結果、またはユー�
 
 次workflowに応じて、packetの種類を選びます。
 
-- `investigation-to-plan`: 調査結果から実装計画へ。
+- `prep-to-execution`: 実装前準備の作業コンテクストから承認後の実装へ。
 - `plan-to-execution`: 承認済み計画から実装へ。
 - `execution-to-verification`: 実装差分から検証へ。
 - `verification-to-reviewable-gate`: 検証証跡からreview gateへ。
@@ -127,7 +127,7 @@ handoff_status: ready / blocked
 
 ## Next Step
 
-- investigation-workflow / implementation-plan-gate / implementation-execution-workflow / verification-workflow / reviewable-gate-review / post-review-fix-triage / decision-clarification-workflow / human decision
+- implementation-prep-workflow / implementation-execution-workflow / verification-workflow / reviewable-gate-review / post-review-fix-triage / decision-clarification-workflow / human decision
 ```
 
 ## 禁止事項

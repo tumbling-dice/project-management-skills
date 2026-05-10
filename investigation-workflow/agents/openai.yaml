@@ -1,7 +1,0 @@
-interface:
-  display_name: "Investigation Workflow"
-  short_description: "実装前に調査結果を一時コンテクスト化"
-  default_prompt: "$investigation-workflow を使って、まだ実装せずに関連ファイル、既存実装、既存テスト、影響範囲を調査してください。"
-
-policy:
-  allow_implicit_invocation: false

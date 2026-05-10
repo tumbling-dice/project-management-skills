@@ -42,7 +42,7 @@ description: このskillは workflow-router のrouting結果、またはユー�
 - テストやsnapshotを更新する場合。
 - 検証専用の `test_runner` custom agentを作る場合。その場合は `$test-runner-scaffold` を使います。
 - 差分がreview可能か判定する場合。その場合は `reviewable-gate-review` を使います。
-- 実装前に検証コマンドを計画する場合。その場合は `implementation-plan-gate` を使います。
+- 実装前に検証コマンドを計画する場合。その場合は `implementation-prep-workflow` を使います。
 
 ## 基本方針
 
@@ -155,8 +155,7 @@ repo内に `.codex/agents/test_runner.toml` がある場合は、`subagent-orche
 
 - `pass`: `reviewable-gate-review`
 - 実装差分に起因する失敗: `implementation-execution-workflow`
-- テスト方針や検証範囲の不足: `implementation-plan-gate`
-- 原因不明、再現条件不足、影響範囲不足: `investigation-workflow`
+- テスト方針、検証範囲、原因、再現条件、影響範囲の不足: `implementation-prep-workflow`
 - 検証専用agentやrepo内検証手順が未整備: `$test-runner-scaffold`
 - 権限、secret、外部service、破壊的操作、risk acceptance: human decision
 
@@ -207,7 +206,7 @@ verification_status: pass / fail / blocked / partial
 
 ## Next Step
 
-- reviewable-gate-review / implementation-execution-workflow / implementation-plan-gate / investigation-workflow / test-runner-scaffold / human decision
+- reviewable-gate-review / implementation-execution-workflow / implementation-prep-workflow / test-runner-scaffold / human decision
 ```
 
 ## 禁止事項

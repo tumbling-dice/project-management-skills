@@ -9,8 +9,8 @@ description: ユーザーが自然文で、既存の調査結果、実装計画�
 
 ## 使う場面
 
-- `investigation-workflow` の調査結果に、人間判断待ちや未確認事項が残っている。
-- `implementation-plan-gate` が `status: blocked` を返した。
+- `implementation-prep-workflow` の作業コンテクストに、人間判断待ちや未確認事項が残っている。
+- `implementation-prep-workflow` が `prep_status: blocked` を返した。
 - `reviewable-gate-review` が `blocked` または `needs-specialist-review` を返し、人間判断、risk acceptance、再計画、専門review routingが必要になった。
 - 未確認事項の一覧が長く、人間がどれに答えれば次へ進めるか分かりにくい。
 - 計画やreview結果を再実行する前に、確定事項、非対象範囲、次workflowへ渡す入力を整理したい。
@@ -26,8 +26,8 @@ description: ユーザーが自然文で、既存の調査結果、実装計画�
 
 原則として、次のいずれかを入力にします。
 
-- `investigation-workflow` の調査コンテクスト
-- `implementation-plan-gate` の `status: blocked` な計画
+- `implementation-prep-workflow` の作業コンテクスト
+- `implementation-prep-workflow` の `prep_status: blocked` な計画
 - `reviewable-gate-review` の `blocked` / `needs-specialist-review` 結果
 - チケット本文、作業メモ、review commentに残された人間判断待ち
 
@@ -86,7 +86,7 @@ description: ユーザーが自然文で、既存の調査結果、実装計画�
 - `確定事項`: 回答により決まった仕様、scope、リスク受容。
 - `非対象範囲`: 今回扱わないと決まった事項。
 - `残る未確認事項`: まだ止めているものと、止めないがreviewで見るものを分ける。
-- `次workflowへ渡す入力`: `implementation-plan-gate`、`investigation-workflow`、`reviewable-gate-review`、専門review、human decision など。
+- `次workflowへ渡す入力`: `implementation-prep-workflow`、`reviewable-gate-review`、専門review、human decision など。
 
 未回答の質問は確定事項として扱いません。保留された場合は `if deferred` に従って戻り先を示します。
 
@@ -132,7 +132,7 @@ clarification_status: ready_for_plan / ready_for_review / blocked
 
 ## Next Step
 
-- implementation-plan-gate / investigation-workflow / reviewable-gate-review / specialist review / human decision
+- implementation-prep-workflow / reviewable-gate-review / specialist review / human decision
 ```
 
 ## 禁止事項

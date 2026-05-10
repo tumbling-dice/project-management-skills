@@ -205,8 +205,7 @@ Requested action from Main Agent: <Main Agentに補ってほしいこと>
 失敗や未実行があった場合は、原因の種類ごとに戻り先を分けます。
 
 - 実装差分に起因する失敗: `implementation-execution-workflow`
-- テスト方針、検証範囲、期待値の不明確さ: `implementation-plan-gate`
-- 原因が不明で追加調査が必要: `investigation-workflow`
+- テスト方針、検証範囲、期待値、原因の不明確さ: `implementation-prep-workflow`
 - 検証証跡は揃ったがreview判定が必要: `reviewable-gate-review`
 - sandbox、権限、外部service、secret、破壊的操作の承認: human decision
 

@@ -50,7 +50,7 @@ description: ユーザーが自然文で、repo内の AGENTS.md、.codex/skills�
 
 ### Workflow接続
 
-- `investigation-workflow`、`implementation-plan-gate`、`implementation-execution-workflow`、`verification-workflow`、`reviewable-gate-review` への戻り先が明確か。
+- `implementation-prep-workflow`、`implementation-execution-workflow`、`verification-workflow`、`reviewable-gate-review` への戻り先が明確か。
 - `decision-clarification-workflow` へ渡す人間判断が整理されているか。
 - `post-review-fix-triage` や `workflow-artifact-handoff` が必要な場面がないか。
 - 共通workflowへの移行対応表が必要な場合、`repo-workflow-migration-plan` へ戻すべきか。

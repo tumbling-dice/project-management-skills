@@ -44,7 +44,7 @@ Windows では symlink を使わず copy します。既存pathがある場合�
 `workflow-router` 以外の共通 workflow skill は、原則として次の場合だけ使います。
 
 - `workflow-router` の routing 結果で選ばれた場合
-- ユーザーが `$investigation-workflow` のように skill 名を明示した場合
+- ユーザーが `$implementation-prep-workflow` のように skill 名を明示した場合
 
 ただし、ユーザーが自然文で判断整理、成果物作成、点検そのものを直接頼みやすい補助 / scaffold / audit 系 skill は、自然発火を許可します。
 
@@ -75,8 +75,7 @@ reviewable gateはrepo内にscaffoldされた reviewable gate用custom agentへ�
 | Skill | 役割 |
 | --- | --- |
 | `workflow-router` | ユーザー依頼や現在の成果物から、次に使うべきworkflow skillを判定します。対象workflowの実行、実装、検証、review判定は行いません。 |
-| `investigation-workflow` | 実装前に調査だけを行い、関連ファイル、既存実装、関連ドキュメント、影響範囲、事実、仮説、未確認事項、リスクを整理します。修正やテスト更新は始めません。 |
-| `implementation-plan-gate` | 調査結果や一時コンテキストから、修正開始前の実装計画、根拠にしたドキュメント、不整合の扱いを整理します。人間がレビューして承認するまで実装を始めません。 |
+| `implementation-prep-workflow` | 実装前に調査、実装計画、修正開始可否、人間レビュー観点、最後の判断質問整理を単一の作業コンテクストで行います。人間がレビューして承認するまで実装を始めません。 |
 | `implementation-execution-workflow` | 人間が承認した計画を authority として、計画範囲内の実装、対応テスト、自己確認、検証、`reviewable-gate-review` まで進めます。 |
 | `verification-workflow` | repo内 `test_runner` が、実装後または reviewable gate 前に必要な検証範囲を確定し、検証コマンドを実行して検証証跡をまとめます。 |
 | `reviewable-gate-review` | repo内reviewable gate agentが、差分が人間レビューや専門 review へ進める状態か、計画、diff、テスト、計画時のドキュメント根拠、検証結果などの証跡から判定します。 |
@@ -109,12 +108,11 @@ reviewable gateはrepo内にscaffoldされた reviewable gate用custom agentへ�
 
 ## 基本ワークフロー
 
-通常の変更は、必ず `workflow-router` で次 workflow を判定してから進めます。調査と計画では、コードとテストだけでなく、要件、設計、AGENTS、検証手順、review条件などのドキュメントを根拠資料として確認します。典型的には次の流れになります。
+通常の変更は、必ず `workflow-router` で次 workflow を判定してから進めます。実装前準備では、コードとテストだけでなく、要件、設計、AGENTS、検証手順、review条件などのドキュメントを根拠資料として確認します。典型的には次の流れになります。
 
 ```text
 workflow-router
-  -> investigation-workflow
-  -> implementation-plan-gate
+  -> implementation-prep-workflow
   -> human approval
   -> implementation-execution-workflow
   -> verification-workflow
@@ -129,8 +127,7 @@ review comments / gate result
   -> post-review-fix-triage
   -> implementation-execution-workflow
      / verification-workflow
-     / implementation-plan-gate
-     / investigation-workflow
+     / implementation-prep-workflow
      / decision-clarification-workflow
      / human decision
 ```
@@ -183,8 +180,7 @@ current artifacts
 
 候補 workflow:
 
-- `investigation-workflow`
-- `implementation-plan-gate`
+- `implementation-prep-workflow`
 - `decision-clarification-workflow`
 - `implementation-execution-workflow`
 - `verification-workflow`
@@ -192,13 +188,12 @@ current artifacts
 
 流れ:
 
-1. `workflow-router` で、調査、計画、実装、検証、review gate のどこから始めるかを判定します。
-2. `investigation-workflow` で、実装前に既存実装、既存テスト、関連ドキュメント、影響範囲、仮説、リスクを整理します。
-3. `implementation-plan-gate` で、変更方針、変更予定ファイル、ドキュメント根拠、不整合の扱い、テスト方針、検証コマンド、非対象範囲を計画化します。
-4. 計画が blocked になった場合は、`decision-clarification-workflow` で人間が答えるべき判断質問に絞ります。
-5. 人間承認後、`implementation-execution-workflow` で実装、対応テスト、自己確認を行います。
-6. repo内 `test_runner` custom agentへ `verification-workflow` を委譲します。
-7. repo内reviewable gate agentへ `reviewable-gate-review` を委譲し、人間レビューや専門 review へ進める状態か、計画時のドキュメント根拠と差分が矛盾していないかを確認します。
+1. `workflow-router` で、実装前準備、実装、検証、review gate のどこから始めるかを判定します。
+2. `implementation-prep-workflow` で、実装前に既存実装、既存テスト、関連ドキュメント、影響範囲、仮説、リスクを整理し、同じ作業コンテクストで変更方針、変更予定ファイル、テスト方針、検証コマンド、修正開始可否を計画化します。
+3. `implementation-prep-workflow` の最後に、人間が答えるべき判断質問を `Decision Clarification` として絞ります。確認事項がなければ質問数0として報告します。
+4. 人間承認後、`implementation-execution-workflow` で実装、対応テスト、自己確認を行います。
+5. repo内 `test_runner` custom agentへ `verification-workflow` を委譲します。
+6. repo内reviewable gate agentへ `reviewable-gate-review` を委譲し、人間レビューや専門 review へ進める状態か、計画時のドキュメント根拠と差分が矛盾していないかを確認します。
 
 ### 3. Review 指摘を受けて再修正する
 
@@ -216,7 +211,7 @@ current artifacts
 2. 人間 review、specialist review、`reviewable-gate-review` の指摘を `post-review-fix-triage` に渡します。
 3. 指摘を `fix-in-plan`、`verify-only`、`re-plan`、`investigate`、`human-decision`、`specialist-review`、`non-blocking` に分類します。
 4. `fix-in-plan` だけを `implementation-execution-workflow` の再修正 scope として渡します。
-5. 検証証跡不足は `verification-workflow`、ドキュメント根拠不足や計画外変更は `implementation-plan-gate`、事実不足は `investigation-workflow`、リスク受容は `decision-clarification-workflow` または human decision へ戻します。
+5. 検証証跡不足は `verification-workflow`、ドキュメント根拠不足、計画外変更、事実不足は `implementation-prep-workflow`、リスク受容は `decision-clarification-workflow` または human decision へ戻します。
 
 ### 4. 検証専用 agent を repo 内に整備する
 
@@ -262,7 +257,7 @@ current artifacts
 1. `workflow-router` で、次workflowの実行ではなくhandoff packet作成が目的かを判定します。
 2. 既存の成果物から、次 workflow に必要な authority と証跡だけを選びます。
 3. `workflow-artifact-handoff` で handoff type を選びます。
-   - `investigation-to-plan`
+   - `prep-to-execution`
    - `plan-to-execution`
    - `execution-to-verification`
    - `verification-to-reviewable-gate`
@@ -318,7 +313,7 @@ current artifacts
 3. 文書同士の矛盾、古い前提、未決事項、実装や検証手順との食い違いを severity 付きで整理します。
 4. findings を `auto-fixable`、`needs-workflow`、`human-decision` に分けます。
 5. 既存証跡から正しい記述が一意に決まる誤記、古い参照、リンク、検証コマンド、説明同期漏れはMain Agentが同じ作業内で修正します。
-6. 事実不足は `investigation-workflow`、期待動作やscope整理は `implementation-plan-gate`、人間判断は `decision-clarification-workflow` または human decision へ戻します。
+6. 事実不足、期待動作やscope整理は `implementation-prep-workflow`、人間判断は `decision-clarification-workflow` または human decision へ戻します。
 
 ## 役割境界
 
@@ -328,7 +323,7 @@ current artifacts
 - `test_runner` は検証を実行して証跡を返します。修正や review 判定はしません。
 - specialist reviewer は専門領域の review を行います。検証実行、修正、release、merge、risk acceptance はしません。
 - repo内reviewable gate agentは `reviewable-gate-review` を実行し、レビュー可能条件と routing を判定します。repo 固有の深い設計判断を単独では承認しません。
-- バグ修正や実装の根拠になる要件、設計、検証手順、AGENTS、review条件は、調査と計画の段階で根拠資料として確認します。文書と実態が食い違う場合は、既存証跡だけで直せるものを更新し、それ以外は追加調査、人間判断、または計画へ戻します。
+- バグ修正や実装の根拠になる要件、設計、検証手順、AGENTS、review条件は、`implementation-prep-workflow` で根拠資料として確認します。文書と実態が食い違う場合は、既存証跡だけで直せるものを更新し、それ以外は追加調査、人間判断、または実装前準備へ戻します。
 - `project-doc-consistency-audit` は文書群を点検します。`project_doc_auditor` は文書を編集しませんが、Main Agent はaudit結果のうち人間判断が不要な文書修正を適用します。実装、検証、review判定は行いません。
 - `repo-workflow-migration-plan` は成熟済みrepoの運用資産を共通workflowへ寄せる対応表を作ります。移行対象ファイルの削除、移動、編集、検証、review判定は行いません。
 - `workflow-router` と `project-doc-consistency-audit` は、この共通repoの `workflow_router`、`project_doc_auditor` custom agentで実行します。`verification-workflow` と `reviewable-gate-review` は、各repo内にscaffoldされた `test_runner` とreviewable gate用custom agentで実行します。Main Agentは同一agent内で代替実行しません。

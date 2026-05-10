@@ -1,11 +1,11 @@
 ---
 name: repo-skill-audit
-description: ユーザーが自然文で、repo内の AGENTS.md、.codex/skills、.codex/agents、review routing、検証手順の整合、公開前確認、役割重複、ローカルフルパス、古い検証コマンド、危険な権限や禁止操作漏れを点検したいと頼んだ場合に使う。workflow-router のrouting結果、または $repo-skill-audit の明示でも使う。修正は行わず、必要な更新候補と戻り先を整理する。
+description: ユーザーが自然文で、repo内の AGENTS.md、.codex/skills、.codex/agents、review routing、検証手順の整合、公開前確認、役割重複、ローカルフルパス、古い検証コマンド、危険な権限や禁止操作漏れを点検したいと頼んだ場合に使う。workflow-router のrouting結果、または $repo-skill-audit の明示でも使う。人間判断が不要なskill、agent、文書修正は同じ作業内で対応し、判断が必要なものは必要な更新候補と戻り先を整理する。
 ---
 
 # Repo Skill Audit
 
-このskillは、repo内のAI利用ルール、repo固有skill、custom agent、review routing、検証手順を点検するためのauditワークフローです。目的は、共通skillとrepo固有skillの役割境界、配布性、安全条件、workflow接続を確認し、修正すべき候補を整理することです。
+このskillは、repo内のAI利用ルール、repo固有skill、custom agent、review routing、検証手順を点検するためのauditワークフローです。目的は、共通skillとrepo固有skillの役割境界、配布性、安全条件、workflow接続を確認し、人間判断が不要な問題を同じ作業内で修正し、判断が必要な候補を整理することです。
 
 ## 使う場面
 
@@ -18,7 +18,7 @@ description: ユーザーが自然文で、repo内の AGENTS.md、.codex/skills�
 
 ## 使わない場面
 
-- audit結果を実装修正する場合。
+- auditではなく、repo内skillやagentの新規scaffoldが主目的の場合。
 - 検証コマンドを実行する場合。
 - review判定や専門reviewを行う場合。
 - 新しいrepo内skillやagentをscaffoldする場合。その場合は該当するscaffold skillを使います。
@@ -79,9 +79,21 @@ description: ユーザーが自然文で、repo内の AGENTS.md、.codex/skills�
 1. audit目的と対象範囲を確認する。
 2. 対象ファイルを列挙し、読む優先度を決める。
 3. Audit観点ごとに finding を記録する。
-4. findingを severity と戻り先で分類する。
-5. 修正候補を、実装せずに提案する。
-6. 必要なら `docs/work/<task-id>-repo-skill-audit.md` にaudit結果を保存する。
+4. findingを severity、戻り先、`auto-fixable` / `needs-workflow` / `human-decision` で分類する。
+5. `auto-fixable` は同じ作業内で修正し、必要なら関連する `agents/openai.yaml` や README も同期する。
+6. `needs-workflow` と `human-decision` は、修正候補と戻り先を整理する。
+7. 必要なら `docs/work/<task-id>-repo-skill-audit.md` にaudit結果を保存する。
+
+## 自動修正できる条件
+
+次をすべて満たすfindingは `auto-fixable` として扱います。
+
+- 既存のAGENTS、skill本文、agent定義、README、install script、CI、manifestなどの証跡から修正内容が判断できる。
+- 修正が誤記、古いpath、古いコマンド、明白な役割境界の同期漏れ、出力形式の欠落、禁止事項の記述漏れ、READMEや `agents/openai.yaml` の説明同期に閉じる。
+- repo固有の仕様、review方針、risk acceptance、security、privacy、release、本番操作の判断を含まない。
+- 破壊的操作、削除、大きな移行、責務分解、共通workflowへの移行判断を含まない。
+
+判断が割れる場合、または修正すると運用方針を決めることになる場合は、自動修正せず `human-decision` または `needs-workflow` にします。
 
 ## Severity
 
@@ -117,6 +129,13 @@ audit_status: pass / findings / blocked
   impact:
   recommended fix:
   next workflow:
+  fix action: auto-fixable / needs-workflow / human-decision / no-action
+
+## Applied Fixes
+
+- finding id:
+  files:
+  summary:
 
 ## Positive Checks
 
@@ -141,11 +160,12 @@ audit_status: pass / findings / blocked
 
 ## 禁止事項
 
-- audit中に実装修正、skill修正、agent修正、検証実行を始めない。
+- `auto-fixable` と分類できない実装修正、skill修正、agent修正、検証実行を始めない。
 - secretsや本番ログを本文へ複製しない。
 - ローカル環境にだけ存在するpathを公開前提の推奨として固定しない。
 - severityを曖昧にせず、影響と戻り先を明記する。
 - ユーザー承認なしに破壊的操作、削除、整形、移動を行わない。
+- 人間判断が必要なfindingを、表記修正として扱って自動修正しない。
 
 ## 完了報告
 
@@ -154,5 +174,7 @@ audit_status: pass / findings / blocked
 - `audit_status`
 - blocking / high findingの有無
 - 主要findingと推奨更新順
+- 適用した自動修正
+- 残った人間判断または戻り先
 - 未確認範囲
 - 次の戻り先

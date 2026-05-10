@@ -14,13 +14,16 @@ Inputs:
 Output:
 - Return a Project Doc Consistency Audit result.
 - Classify findings by severity and category.
-- Include evidence, impact, recommended next workflow, and human-decision needs.
+- Include evidence, impact, recommended next workflow, human-decision needs, and whether each finding is auto-fixable.
+- Mark findings as auto-fixable only when the correct documentation change follows directly from existing evidence and does not require scope, product, security, privacy, release, production, or risk-acceptance decisions.
+- Leave Applied Fixes empty unless the Main Agent supplied already-applied fixes as explicit input.
 - Include not-checked scope when the audit is intentionally partial.
 
 Boundaries:
 - Do not edit files.
 - Do not run tests, builds, lint, or verification commands.
 - Do not implement, review code, update docs, or create implementation plans.
+- Leave auto-fixable edits for the Main Agent to apply after your audit result.
 - Do not ask the Main Agent to re-run the documentation audit itself.
 - Do not approve human decisions, releases, merges, production operations, or risk acceptance.
 - Do not copy secrets, credentials, or raw production logs into the result.

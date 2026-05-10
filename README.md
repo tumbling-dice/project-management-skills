@@ -56,13 +56,13 @@ Windows では symlink を使わず copy します。既存pathがある場合�
 - `repo-skill-audit`: repo内skill、custom agent、AGENTS、review routing、検証手順の整合を点検する依頼
 - `repo-workflow-migration-plan`: 成熟済みrepo内の運用docs、repo-local skill、custom agent、review routing、検証手順を共通workflowへ寄せる移行計画を作る依頼
 
-自然発火を許可する場合でも、実装、検証、review判定などの厳密な工程workflowを代替しません。ユーザー依頼がそのskillの判断整理、成果物、点検目的に直接一致する場合だけ使います。
+自然発火を許可する場合でも、実装、検証、review判定などの厳密な工程workflowを代替しません。ユーザー依頼がそのskillの判断整理、成果物、点検目的に直接一致する場合だけ使います。audit系skillで人間判断が不要な修正を見つけた場合は、同じ作業内で修正し、判断が必要なものだけ戻り先を整理します。
 
 `workflow-router` は routing 結果を会話で返すだけで、ファイル作成、ファイル更新、実装、検証、レビュー判定は行いません。
 
 `workflow_router` custom agent が使えない場合、Main Agent は同一agentで代替routingせず、必要なagentが無いことを報告して停止します。代替routingは、このskill群自体の開発・検証で明示された場合だけです。
 
-PJ文書群の整合auditも同じく、`project_doc_auditor` custom agentへ委譲します。Main Agent は `project-doc-consistency-audit` を自分で実行しません。
+PJ文書群の整合auditも同じく、`project_doc_auditor` custom agentへ委譲します。Main Agent は `project-doc-consistency-audit` の点検を自分で実行しません。audit結果のうち、人間判断が不要な文書修正はMain Agentが適用します。
 
 検証はrepo内にscaffoldされた `test_runner` custom agentへ委譲します。Main Agent は `verification-workflow` や検証コマンドを直接実行しません。
 
@@ -88,7 +88,7 @@ reviewable gateはrepo内にscaffoldされた reviewable gate用custom agentへ�
 | --- | --- |
 | `decision-clarification-workflow` | blocked 理由や人間判断待ちを、少数の判断質問へ変換します。仕様決定、実装、検証、review 判定は行いません。 |
 | `workflow-artifact-handoff` | 調査、計画、実装証跡、検証証跡、review 結果などを、次 workflow へ渡せる handoff packet に整理します。 |
-| `project-doc-consistency-audit` | README、AGENTS、PJ文書、検証手順、review条件、代表的な作業メモを横断し、文書同士の矛盾、古い前提、未決事項、実装や検証手順との食い違いを点検します。 |
+| `project-doc-consistency-audit` | README、AGENTS、PJ文書、検証手順、review条件、代表的な作業メモを横断し、文書同士の矛盾、古い前提、未決事項、実装や検証手順との食い違いを点検します。人間判断が不要な文書修正は同じ作業内で行います。 |
 
 ### Scaffold And Audit
 
@@ -97,7 +97,7 @@ reviewable gateはrepo内にscaffoldされた reviewable gate用custom agentへ�
 | `project-startup-scaffold` | 新規プロジェクトや文書が薄い既存プロジェクト向けに、初期コンテキスト、AI 利用ルール、AGENTS.md、作業メモ雛形などを作ります。 |
 | `specialist-reviewer-scaffold` | `reviewable-gate-review` を補完する repo 固有の専門 review skill や custom agent を設計、提案、作成します。 |
 | `test-runner-scaffold` | repo 内に検証専用の `test_runner` custom agent と、agent が読む repo 固有の検証手順を作ります。 |
-| `repo-skill-audit` | repo 内の AGENTS.md、`.codex/skills`、`.codex/agents`、review routing、検証手順を点検し、役割重複や危険な権限漏れを見つけます。 |
+| `repo-skill-audit` | repo 内の AGENTS.md、`.codex/skills`、`.codex/agents`、review routing、検証手順を点検し、役割重複や危険な権限漏れを見つけます。人間判断が不要なskill、agent、文書修正は同じ作業内で行います。 |
 | `repo-workflow-migration-plan` | 成熟済みrepo内の運用docs、repo-local skill、custom agent、review routing、検証手順を、共通workflowへ委譲・削除・残置・分解する計画に整理します。 |
 
 ### Subagent Contract
@@ -283,8 +283,10 @@ current artifacts
 1. `workflow-router` で、実装修正ではなくauditが目的かを判定します。
 2. AGENTS.md、`.codex/skills`、`.codex/agents`、review routing、verification docs を対象にします。
 3. 役割境界、workflow routing、配布性、検証と権限、security 観点で findings を出します。
-4. blocking / high finding を先に直す順序を整理します。
-5. 修正が必要なら、該当する scaffold skill や workflow へ戻します。
+4. findings を `auto-fixable`、`needs-workflow`、`human-decision` に分けます。
+5. 人間判断が不要な誤記、古いpath、古いコマンド、明白な説明同期漏れは同じ作業内で修正します。
+6. blocking / high finding のうち自動修正できないものは、先に直す順序を整理します。
+7. scaffold、移行計画、人間判断が必要なものは、該当する scaffold skill、workflow、または human decision へ戻します。
 
 ### 8. 成熟済みrepoの運用資産を共通workflowへ寄せる
 
@@ -314,8 +316,9 @@ current artifacts
 1. `workflow-router` で、実装や計画ではなくPJ文書群の整合auditが目的かを判定します。
 2. `project_doc_auditor` custom agent へ委譲し、README、AGENTS、PJ文書、検証手順、review条件、代表的な作業メモを確認します。
 3. 文書同士の矛盾、古い前提、未決事項、実装や検証手順との食い違いを severity 付きで整理します。
-4. 事実不足は `investigation-workflow`、期待動作やscope整理は `implementation-plan-gate`、人間判断は `decision-clarification-workflow` または human decision へ戻します。
-5. 実装や文書更新はこのaudit内では行いません。
+4. findings を `auto-fixable`、`needs-workflow`、`human-decision` に分けます。
+5. 既存証跡から正しい記述が一意に決まる誤記、古い参照、リンク、検証コマンド、説明同期漏れはMain Agentが同じ作業内で修正します。
+6. 事実不足は `investigation-workflow`、期待動作やscope整理は `implementation-plan-gate`、人間判断は `decision-clarification-workflow` または human decision へ戻します。
 
 ## 役割境界
 
@@ -325,8 +328,8 @@ current artifacts
 - `test_runner` は検証を実行して証跡を返します。修正や review 判定はしません。
 - specialist reviewer は専門領域の review を行います。検証実行、修正、release、merge、risk acceptance はしません。
 - repo内reviewable gate agentは `reviewable-gate-review` を実行し、レビュー可能条件と routing を判定します。repo 固有の深い設計判断を単独では承認しません。
-- バグ修正や実装の根拠になる要件、設計、検証手順、AGENTS、review条件は、調査と計画の段階で根拠資料として確認します。文書と実態が食い違う場合は、実装へ進む前に更新、追加調査、人間判断のいずれへ戻すかを決めます。
-- `project-doc-consistency-audit` は文書群を点検します。文書更新、実装、検証、review判定は行いません。
+- バグ修正や実装の根拠になる要件、設計、検証手順、AGENTS、review条件は、調査と計画の段階で根拠資料として確認します。文書と実態が食い違う場合は、既存証跡だけで直せるものを更新し、それ以外は追加調査、人間判断、または計画へ戻します。
+- `project-doc-consistency-audit` は文書群を点検します。`project_doc_auditor` は文書を編集しませんが、Main Agent はaudit結果のうち人間判断が不要な文書修正を適用します。実装、検証、review判定は行いません。
 - `repo-workflow-migration-plan` は成熟済みrepoの運用資産を共通workflowへ寄せる対応表を作ります。移行対象ファイルの削除、移動、編集、検証、review判定は行いません。
 - `workflow-router` と `project-doc-consistency-audit` は、この共通repoの `workflow_router`、`project_doc_auditor` custom agentで実行します。`verification-workflow` と `reviewable-gate-review` は、各repo内にscaffoldされた `test_runner` とreviewable gate用custom agentで実行します。Main Agentは同一agent内で代替実行しません。
 

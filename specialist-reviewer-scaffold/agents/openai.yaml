@@ -1,7 +1,0 @@
-interface:
-  display_name: "Specialist Reviewer Scaffold"
-  short_description: "repo固有の専門reviewer定義を作る"
-  default_prompt: "$specialist-reviewer-scaffold を使って、このrepoに必要な専門review skillとcustom agent定義を提案してください。"
-
-policy:
-  allow_implicit_invocation: true

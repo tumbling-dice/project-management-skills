@@ -3,7 +3,7 @@ name: subagent-orchestration
 description: Main Agent が subagent へ作業を委譲するときの共通契約。ownership、context handoff、delegation packet、done/blocked の結果状態、wait/recovery、stale result の扱いを定める。
 ---
 
-# Subagent Orchestration
+# subagent-orchestration
 
 ## When To Use
 

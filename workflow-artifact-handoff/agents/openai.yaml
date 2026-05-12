@@ -1,7 +1,0 @@
-interface:
-  display_name: "Workflow Artifact Handoff"
-  short_description: "workflow成果物を次のworkflowへ渡すpacketに整理する"
-  default_prompt: "$workflow-artifact-handoff を使って、現在の成果物を次workflowへ渡せるhandoff packetに整理してください。"
-
-policy:
-  allow_implicit_invocation: false

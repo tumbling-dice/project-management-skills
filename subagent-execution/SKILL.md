@@ -3,7 +3,7 @@ name: subagent-execution
 description: subagent が委譲を受けて動くときの共通実行規約。委譲文だけを authority として扱い、Assigned Scope を広げず、結果状態を done または blocked として扱う。
 ---
 
-# Subagent Execution
+# subagent-execution
 
 ## When To Use
 

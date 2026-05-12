@@ -1,7 +1,0 @@
-interface:
-  display_name: "Implementation Execution Workflow"
-  short_description: "承認済み計画に沿って修正と再レビューを回す"
-  default_prompt: "$implementation-execution-workflow を使って、承認済み実装計画に沿って修正、対応テスト、自己検証、reviewable-gate-review を行い、指摘があれば再修正と再レビューを繰り返してください。"
-
-policy:
-  allow_implicit_invocation: false

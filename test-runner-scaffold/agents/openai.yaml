@@ -1,7 +1,0 @@
-interface:
-  display_name: "Test Runner Scaffold"
-  short_description: "repo内の test_runner agent 定義を作る"
-  default_prompt: "$test-runner-scaffold を使って、このrepoに検証専用の test_runner custom agent とrepo固有の検証手順を提案してください。"
-
-policy:
-  allow_implicit_invocation: true

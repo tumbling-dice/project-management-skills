@@ -1,7 +1,0 @@
-interface:
-  display_name: "Post Review Fix Triage"
-  short_description: "review指摘を修正・再計画・調査・人間判断へ分類する"
-  default_prompt: "$post-review-fix-triage を使って、review指摘を承認済み計画内で修正できるもの、再検証、再計画、追加調査、人間判断へ戻すものに分類してください。"
-
-policy:
-  allow_implicit_invocation: false

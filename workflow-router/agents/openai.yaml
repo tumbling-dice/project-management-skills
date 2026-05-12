@@ -1,8 +1,0 @@
-interface:
-  display_name: "Workflow Router"
-  short_description: "次に使うworkflow skillを判定する"
-  default_prompt: "$workflow-router を使って、現在の依頼や成果物から次に使うべきworkflow skillを判定してください。"
-
-policy:
-  allow_implicit_invocation: true
-

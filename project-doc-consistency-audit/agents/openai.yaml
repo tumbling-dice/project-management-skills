@@ -1,7 +1,0 @@
-interface:
-  display_name: "Project Doc Consistency Audit"
-  short_description: "PJ文書群を点検し、判断不要な文書修正まで行う"
-  default_prompt: "$project-doc-consistency-audit を使って、README、AGENTS、PJ文書、検証手順、review条件、代表的な作業メモの整合を点検し、人間判断が不要な文書修正は同じ作業内で対応してください。"
-
-policy:
-  allow_implicit_invocation: true

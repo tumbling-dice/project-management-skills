@@ -1,7 +1,0 @@
-interface:
-  display_name: "Verification Workflow"
-  short_description: "検証結果を証跡として整理する"
-  default_prompt: "$verification-workflow を使って、承認済み計画と差分にもとづく検証範囲を確定し、必要なら test_runner に委譲して、reviewable-gate-review へ渡せる検証証跡を作ってください。"
-
-policy:
-  allow_implicit_invocation: false

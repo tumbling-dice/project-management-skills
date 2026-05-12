@@ -1,7 +1,0 @@
-interface:
-  display_name: "Repo Workflow Migration Plan"
-  short_description: "成熟済みrepoの運用資産を共通workflowへ移す計画を作る"
-  default_prompt: "$repo-workflow-migration-plan を使って、このrepo内のAGENTS.md、docs、repo-local skill、custom agent、review routing、検証手順、作業メモを共通project-management workflowへ寄せるための移行計画を作ってください。"
-
-policy:
-  allow_implicit_invocation: true

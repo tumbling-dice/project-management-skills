@@ -1,6 +1,6 @@
 ---
 name: specialist-reviewer-scaffold
-description: ユーザーが自然文で、repo固有の専門reviewer、reviewable gate用custom agent、専門review routing、review用skillやagent定義を作りたいと頼んだ場合に使う。workflow-router のrouting結果、または $specialist-reviewer-scaffold の明示でも使う。repo構成、既存AGENTS.md、.codex/skills、.codex/agents、リスク領域を調査し、責務・リスク・入力証跡ベースでreviewable gate agent、専門reviewer候補、routing文書、repo内skill、custom agent定義を提案または作成する。差分そのもののreviewには使わない。
+description: ユーザーが自然文で、repo固有の専門reviewer、reviewable gate実装、専門review routing、review用skillやagent定義を作りたいと頼んだ場合に使う。workflow-router のrouting結果、または $specialist-reviewer-scaffold の明示でも使う。repo構成、既存AGENTS.md、.codex/skills、.codex/agents、リスク領域を調査し、責務・リスク・入力証跡ベースでreviewable gate実装、専門reviewer候補、routing文書、repo内skill、custom agent定義を提案または作成する。差分そのもののreviewには使わない。
 ---
 
 # Specialist Reviewer Scaffold
@@ -9,11 +9,11 @@ description: ユーザーが自然文で、repo固有の専門reviewer、reviewa
 
 ## 目的
 
-`reviewable-gate-review` は、差分がレビュー可能か、どの専門reviewが必要かを判定する入口です。実PJではMain Agentが直接実行せず、repo内にscaffoldされた reviewable gate用custom agentが実行します。このskillは、そのagentと、判定先となるrepo固有の専門reviewerを作るために使います。
+`reviewable-gate-review` は、差分がレビュー可能か、どの専門reviewが必要かを判定する入口です。実PJではMain Agentが証跡なしに直接判定せず、repo-local supplementで定義されたreviewable gate実装を使います。このskillは、そのgate実装と、判定先となるrepo固有の専門reviewerを作るために使います。
 
 ## 使う場面
 
-- `reviewable-gate-review` を実行するrepo-local custom agentを用意したい。
+- `reviewable-gate-review` を実行するrepo-local custom agent、または専門reviewer結果とgate文書を照合するgate summary方式を用意したい。
 - `reviewable-gate-review` から呼び出す専門reviewerをrepo内に用意したい。
 - 実装者と同じ文脈で判断するとバイアスが出やすい領域を独立reviewerにしたい。
 - 既存の `.codex/skills` や `.codex/agents` を整理し、review routingを明文化したい。
@@ -31,7 +31,7 @@ description: ユーザーが自然文で、repo固有の専門reviewer、reviewa
 - repo固有の専門性は、repo内skillまたはcustom agent定義へ閉じ込める。
 - 分類軸は、技術名ではなく責務、リスク、証跡で切る。
 - custom agentは必要な場合だけ作る。bias分離が不要ならrepo内skillだけでよい。
-- reviewable gate本体は証跡と入口条件を見る。repo-local reviewable gate agentがこれを実行する。専門reviewerは深い領域判断を見る。
+- reviewable gate本体は証跡と入口条件を見る。repo-local reviewable gate実装がこれを担当する。専門reviewerは深い領域判断を見る。
 - 作成する専門reviewerは、`$reviewable-gate-review` から渡される証跡を受け取り、gate互換の判定を返せるようにする。
 - 専門reviewerは検証証跡を判断する。検証コマンドの実行や証跡生成は担当しない。
 - 検証専用agentが必要な場合は `$test-runner-scaffold` を使い、このskillでreviewerとして作らない。
@@ -55,7 +55,7 @@ description: ユーザーが自然文で、repo固有の専門reviewer、reviewa
 3. 既存reviewerやskillで足りる領域を特定する。
 4. bias分離が必要な領域を特定する。
 5. repo内skillで十分なものと、custom agentが必要なものを分ける。
-6. `reviewable-gate-review` を実行するrepo-local custom agentと、そこから呼び出しやすい専門review routingを作る。
+6. `reviewable-gate-review` を実行するrepo-local gate実装と、そこから呼び出しやすい専門review routingを作る。
 
 ## Reviewer設計単位
 
@@ -93,6 +93,7 @@ repoの慣習に従います。慣習がなければ次を推奨します。
 - `.codex/agents/reviewable_gate_reviewer.toml` またはrepo慣習に沿った同等のreviewable gate agent定義
 - `.codex/agents/<reviewer-name>.toml`
 - `docs/review/specialist-review-routing.md`
+- `docs/review/reviewable-gate.md` またはrepo慣習に沿ったgate summary手順
 
 `docs/review/specialist-review-routing.md` は任意です。既にreview routingが `AGENTS.md` や別文書にある場合は、そこへ最小追記します。
 
@@ -135,7 +136,7 @@ gate互換の出力は、少なくとも次を含めます。
 
 custom agent定義には、次を含めます。
 
-- reviewable gate用agentは、`$reviewable-gate-review` をgoverning workflowとして使うこと
+- reviewable gate用agentを作る場合は、`$reviewable-gate-review` をgoverning workflowとして使うこと
 - reviewable gate用agentは、Main Agentや実装者の長い会話履歴を前提にせず、承認済み計画、diff、変更ファイル、テスト、検証証跡、非対象範囲、risk notesだけで判定すること
 - read-onlyを基本にすること
 - 親や実装者の長い会話履歴を前提にしないこと
@@ -154,7 +155,8 @@ agent定義の形式はrepoの既存 `.codex/agents` に合わせます。既存
 routing文書またはAGENTS.md追記には、次を含めます。
 
 - `reviewable-gate-review` が入口であること
-- 実PJでは、Main Agentが `reviewable-gate-review` を直接実行せず、repo-local reviewable gate agentへ委譲すること
+- 実PJでは、Main Agentが証跡なしに `reviewable-gate-review` を直接判定せず、repo-local reviewable gate実装を使うこと
+- gate実装がcustom agent委譲か、専門reviewer結果とgate文書の照合で作るgate summaryかを明記すること
 - Gateで専門reviewが必要と判定された場合の呼び出し先
 - 各専門reviewerのtrigger
 - 渡す入力証跡

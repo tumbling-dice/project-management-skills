@@ -65,39 +65,53 @@ description: このskillは workflow-router のrouting結果、またはユー�
    - 実装中に、計画時のドキュメント根拠と矛盾する新事実を見つけていないか。
    - 認証、認可、tenant、PII、secret、ログ、外部入力への影響を見たか。
    - 不要な依存追加、大きすぎるrefactor、広すぎる例外処理が混ざっていないか。
-6. 関連検証を実行または委譲する。
+6. formatterまたはformat checkを実行する。
+   - repo手順で実装者担当とされるformatterやformat checkはMain Agentが実行する。
+   - formatterが失敗した場合は、計画範囲内のformat差分として直し、test、lint、review、E2Eへ進む前に再確認します。
+   - format以外のtest、lint、build、typecheck、E2E、visual確認を先回り実行しません。
+7. 関連検証を委譲する。
    - 承認済み計画にある検証コマンドを優先する。
-   - `verification-workflow` を使う場合は、必ずrepo内 `test_runner` custom agentへ委譲する。
+   - formatterまたはformat checkを除く検証コマンドは、`verification-workflow` を使ってrepo内 `test_runner` custom agentへ委譲する。
    - repo内 `test_runner` が使えない場合は、直接実行せず `execution_status: blocked` として `$test-runner-scaffold` へ戻す。
    - 承認済み計画のコマンドが環境理由で実行できない場合、repo内 `test_runner` はrepo手順や実行環境で明らかな同等コマンドを補助検証として実行してもよい。ただし、元の計画コマンドの失敗または未実行を隠さず記録し、同等扱いが承認されていない限り `pass` や `completed` の根拠にしない。
-7. 失敗時の扱いを決める。
+8. 失敗時の扱いを決める。
    - 実装差分に起因する失敗は、計画範囲内で修正して再検証する。
    - 計画、テスト方針、検証範囲、原因、影響範囲の不足なら `implementation-prep-workflow` へ戻す。
    - 権限、secret、外部service、破壊的操作、risk acceptanceが必要なら人間判断へ戻す。
-8. `reviewable-gate-review` を呼び出す。
-   - 必ずrepo内にscaffoldされた reviewable gate用custom agentへ委譲する。
+9. repo固有の専門reviewを呼び出す。
+   - repo-local supplementやreview routingが、特定の専門reviewerを非E2E検証後に呼ぶよう指定している場合は、その順序に従います。
+   - 専門reviewerがblocking issueを返した場合は、計画範囲内で修正し、format、関連検証、同じ専門reviewを再実行します。
+   - 専門reviewerのblocking issueが残っている間は、E2E、screenshot更新、visual確認へ進みません。
+10. E2E、screenshot、visual確認を委譲する。
+   - repo-local supplementがE2Eやvisual確認を後段に分けている場合は、専門reviewのblocking issueを解消した後に `test_runner` やrepo固有reviewerへ委譲します。
+   - screenshot、golden、visual baselineの更新は、repo手順と人間承認に従い、暗黙に通過条件へ混ぜません。
+11. `reviewable-gate-review` を呼び出す。
+   - repo-local supplementにreviewable gate agentが定義されている場合は、そのagentへ委譲する。
+   - repo-local supplementが、専門reviewer結果とreviewable gate文書の照合でgate summaryを作る方式を定義している場合は、その方式を使います。
    - 承認済み計画、git diff、変更ファイル、テスト差分、計画時のドキュメント根拠、検証結果、未実行検証、非対象範囲、自己確認メモを渡す。
    - 実装者の長い会話履歴、未検証の仮説、採用案を正当化する説明をreview authorityとして渡さない。
-   - repo内reviewable gate agentが使えない場合は、同一Main Agentで代替判定せず `execution_status: blocked` として `$specialist-reviewer-scaffold` へ戻す。
-9. review結果を処理する。
+   - repo-local supplementにgate実装がない場合は、同一Main Agentで代替判定せず `execution_status: blocked` として `$specialist-reviewer-scaffold` へ戻す。
+12. review結果を処理する。
    - `pass`: 実装サイクルを完了し、人間レビューへ渡す。
    - `blocked`: 指摘が承認済み計画の範囲内で修正可能なら、修正、テスト、検証、再レビューを行う。
    - `needs-specialist-review`: repo内の専門reviewerへroutingする。必要なreviewerが未整備なら `specialist-reviewer-scaffold` を提案する。
    - 計画外の変更、リスク受容、権限、secret、外部service、破壊的操作が必要なら人間判断へ戻す。
-10. 終了条件に達するまで、修正、テスト、検証、`reviewable-gate-review` を繰り返す。
+13. 終了条件に達するまで、修正、テスト、検証、専門review、`reviewable-gate-review` を繰り返す。
 
 ## 検証の扱い
 
 このskillは実装者の自己検証と、`reviewable-gate-review` の呼び出しまでを担当します。review可能判定そのものは `reviewable-gate-review` の出力を根拠として扱います。
 
 - 検証は `verification-workflow` をrepo内 `test_runner` custom agentへ委譲して行います。
+- formatterとformat checkは、repo手順でMain Agent担当とされている場合だけ例外としてMain Agentが実行します。formatが終わるまでtest、lint、review、E2Eへ進みません。
+- Main Agentは、formatterまたはformat check以外の検証コマンドを先回り実行しません。
 - 検証失敗を修正する場合でも、承認済み計画の範囲内に限ります。
 - 検証結果が `pass` でも、merge、release、本番操作、リスク受容を承認しません。
 - 計画された検証コマンドと実際に成功した補助コマンドが異なる場合は、両方を分けて記録します。補助コマンドの成功は有用な証跡ですが、計画コマンドの代替として承認されていないなら `reviewable-gate-review` へ未解決リスクとして渡します。
 
 ## Review Cycle
 
-`reviewable-gate-review` は、実装サイクル内の独立したgateとして呼び出します。Main Agentは呼び出し、結果の解釈、修正範囲の判断、再実行のownerです。実PJでは必ずrepo内にscaffoldされた reviewable gate用custom agentへ委譲します。同じMain Agentで代替実行しません。
+`reviewable-gate-review` は、実装サイクル内の独立したgateとして呼び出します。Main Agentは呼び出し、結果の解釈、修正範囲の判断、再実行のownerです。実PJではrepo-local supplementで定義されたreviewable gate実装を使います。gate実装は、repo内にscaffoldされたreviewable gate用custom agent、または専門reviewer結果とgate文書の照合で作るgate summaryのどちらでもかまいません。同じMain Agentが証跡なしに代替判定しません。
 
 review入力には最低限次を渡します。
 
@@ -107,6 +121,7 @@ review入力には最低限次を渡します。
 - 追加または更新したテスト
 - 実行した検証コマンドと結果
 - 未実行検証の理由とリスク
+- 実行した専門reviewer、結果、残ったblocking issue
 - 非対象範囲
 - 権限、tenant、PII、secret、ログ、外部入力への影響メモ
 
@@ -178,9 +193,16 @@ execution_status: completed / partial / blocked
 - command:
   reason:
   result:
-  executor: test_runner / not_run
+  executor: main_agent_formatter / test_runner / not_run
   artifact:
   notes:
+
+## Specialist Review
+
+- reviewer:
+  result:
+  blocking issues:
+  action taken:
 
 ## Not Run
 
@@ -217,6 +239,7 @@ execution_status: completed / partial / blocked
 - 計画時のドキュメント根拠と矛盾する新事実を、計画へ戻さず実装に混ぜない。
 - 認証、認可、tenant、PII、secret、ログへの影響を未確認のまま安全扱いしない。
 - 実行していない検証を実行済みとして扱わない。
+- formatterまたはformat check以外の検証コマンドをMain Agentが先回り実行しない。
 - `reviewable-gate-review` を呼ばずに `execution_status: completed` としない。
 - review指摘が計画外の場合に、承認なしで修正範囲を広げない。
 - 同じblocking issueで反復しているのに、追加調査や人間判断へ戻さず修正を続けない。

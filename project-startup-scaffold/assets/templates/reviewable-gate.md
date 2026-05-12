@@ -15,6 +15,14 @@ Reviewable Gateは、レビューに進めてよい差分かどうかの入口�
 | 5. 検証コマンドが記録されている | 実行コマンドと結果を変更説明に書いている |
 | 6. 未実行検証が明示されている | 未実行の理由とリスクが書かれている |
 | 7. 権限・個人情報・ログ影響を見た | 認証、認可、tenant、PII、token、secretログの影響を確認している |
+| 8. repo-local gate実装と対応している | custom agent委譲またはgate summary方式で、必須reviewer、検証証跡、pass条件を確認している |
+
+## Gate実装
+
+- 方式: custom agent委譲 / gate summary
+- 必須reviewer:
+- gate summaryの入力:
+- pass条件:
 
 ## 例外扱い
 

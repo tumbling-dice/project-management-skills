@@ -9,9 +9,10 @@ description: このskillは workflow-router のrouting結果、またはユー�
 
 ## 実行形態
 
-実PJでは、Main Agentがこのskillを直接実行してはいけません。必ずrepo内にscaffoldされた `test_runner` custom agentへ委譲して実行します。
+実PJでは、Main Agentがこのskillを直接実行してはいけません。必ずrepo内にscaffoldされた `test_runner` custom agentへ委譲して実行します。formatterやformat checkは、repo手順でMain Agent担当とされている場合だけこのworkflowの外側で実行します。
 
 - Main Agentがこのskillを読んだ場合は、自分で検証範囲決定や検証コマンド実行をせず、承認済み計画、差分、変更ファイル、追加/更新テスト、repo固有検証手順、非対象範囲を短くまとめてrepo内 `test_runner` へ渡します。
+- formatterやformat checkをMain Agentが実行済みの場合は、その結果を入力証跡として渡します。`test_runner` へ同じformat確認を重複委譲するかはrepo手順に従います。
 - repo内 `test_runner` custom agentが使えない場合は、`verification_status: blocked` とし、`$test-runner-scaffold` へ戻します。
 - 実PJでは、同一Main Agentによる代替verificationを行いません。代替verificationは、このskill自体の開発・検証で明示された場合だけ行います。
 - `test_runner` は、repo内検証手順に従って検証範囲、コマンド実行、結果分類、戻り先整理、証跡作成を担当します。
@@ -49,6 +50,7 @@ description: このskillは workflow-router のrouting結果、またはユー�
 - 検証範囲は、承認済み計画、差分、repo固有の検証手順から決める。
 - 検証コマンドを共通skillへ固定しない。
 - 検証workflowは repo内 `test_runner` への委譲を必須とする。
+- formatterやformat checkは、repo手順でMain Agent担当とされている場合だけ例外としてこのworkflow外の入力証跡にする。
 - `test_runner` への委譲は `subagent-orchestration` に従う。
 - repo内 `test_runner` が未整備の場合は、Main Agentが代替実行せず、`verification_status: blocked` として `$test-runner-scaffold` へ戻す。
 - 検証失敗をこのskillで修正しない。
@@ -94,6 +96,7 @@ description: このskillは workflow-router のrouting結果、またはユー�
    - project manifest
    - build / test / lint / typecheck / E2E / visual確認の設定
 3. 検証コマンドを分類する。
+   - Main Agentが実行済みまたは実行予定のformatter / format check
    - 今回必須の検証
    - 追加で推奨する検証
    - 時間や環境により任意の検証
@@ -101,6 +104,7 @@ description: このskillは workflow-router のrouting結果、またはユー�
    - 実行してはいけない操作
 4. 実行方法を決める。
    - repo内 `test_runner` がある場合は、必ず委譲する。
+   - Main Agent担当のformatter / format checkは入力証跡として扱い、test、lint、build、typecheck、E2E、visual確認と混ぜません。
    - `test_runner` がない場合は、Main Agentが直接実行せず、`$test-runner-scaffold` を提案して `blocked` にする。
 5. 検証workflowを `test_runner` へ委譲する。
 6. 結果、ログ要約、artifact、warning、未実行理由をまとめる。
@@ -175,6 +179,7 @@ verification_status: pass / fail / blocked / partial
 - changed files:
 - tests:
 - repo verification source:
+- formatter evidence:
 
 ## Required Verification
 

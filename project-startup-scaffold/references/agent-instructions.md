@@ -29,7 +29,9 @@
 - `workflow-router` はrouting結果だけを会話で返し、ファイル作成、ファイル更新、実装、検証、レビュー判定をしない、と書く。
 - PJ文書群の整合auditは `project_doc_auditor` custom agentへ委譲し、Main Agentは `project-doc-consistency-audit` を自分で実行しない、と書く。
 - 検証はrepo内にscaffoldされた `test_runner` custom agentへ委譲し、Main Agentは `verification-workflow` や検証コマンドを直接実行しない、と書く。
-- reviewable gateはrepo内にscaffoldされた reviewable gate用custom agentへ委譲し、Main Agentは `reviewable-gate-review` を自分で実行しない、と書く。
+- formatterやformat checkは、repo手順でMain Agent担当とする場合だけ例外として実行し、その結果を検証証跡へ渡す、と書く。
+- reviewable gateはrepo-local supplementで定義された実装を使い、custom agent委譲かgate summary方式かを明記する、と書く。
+- reviewable gate実装が未整備の場合は停止して人間に不足を報告する、と書く。
 - ユーザーが示したファイルは、明示的に変更対象限定とされない限りヒントとして扱う、と書く。
 - 非自明な実装の前に探索と計画を要求する。
 - レビュー前にテストと検証結果を要求する。

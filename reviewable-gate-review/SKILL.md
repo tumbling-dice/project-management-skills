@@ -1,6 +1,6 @@
 ---
 name: reviewable-gate-review
-description: このskillは workflow-router のrouting結果、またはユーザーが $reviewable-gate-review を明示した場合だけ使う。通常依頼から直接発火しない。実PJでは Main Agent が直接実行せず、repo内にscaffoldされた reviewable gate用custom agentへ委譲する。実装者とは独立した視点で、差分が人間レビューや専門reviewへ進める状態かを判定する。承認済み計画、git diff、変更ファイル、検証結果、未実行検証、非対象範囲、テスト追加・更新、計画時のドキュメント根拠、権限/PII/secret/ログ影響の証跡を確認する。
+description: このskillは workflow-router のrouting結果、またはユーザーが $reviewable-gate-review を明示した場合だけ使う。通常依頼から直接発火しない。実PJでは Main Agent が直接実行せず、repo-local supplementで定義されたreviewable gate実装へ委譲または照合する。実装者とは独立した視点で、差分が人間レビューや専門reviewへ進める状態かを判定する。承認済み計画、git diff、変更ファイル、検証結果、未実行検証、非対象範囲、テスト追加・更新、計画時のドキュメント根拠、権限/PII/secret/ログ影響の証跡を確認する。
 ---
 
 # Reviewable Gate Review
@@ -13,11 +13,12 @@ description: このskillは workflow-router のrouting結果、またはユー�
 
 ## 実行形態
 
-実PJでは、Main Agentがこのskillを直接実行してはいけません。必ずrepo内にscaffoldされた reviewable gate用custom agentへ委譲して実行します。
+実PJでは、Main Agentがこのskillを根拠なしに直接判定してはいけません。repo-local supplementで定義されたreviewable gate実装を使います。
 
-- Main Agentがこのskillを読んだ場合は、自分でreviewable gateを判定せず、承認済み計画、git diff、変更ファイル一覧、追加/更新テスト、検証証跡、未実行検証、非対象範囲、risk notesを短くまとめてrepo内reviewable gate agentへ渡します。
-- repo内reviewable gate agentが使えない場合は、`status: blocked` とし、`$specialist-reviewer-scaffold` へ戻します。
-- 実PJでは、同一Main Agentによる代替reviewable gateを行いません。代替reviewable gateは、このskill自体の開発・検証で明示された場合だけ行います。
+- reviewable gate用custom agentが定義されているrepoでは、Main Agentが承認済み計画、git diff、変更ファイル一覧、追加/更新テスト、検証証跡、未実行検証、非対象範囲、risk notesを短くまとめてrepo内reviewable gate agentへ渡します。
+- repo-local supplementが、専門reviewer結果とreviewable gate文書の照合でgate summaryを作る方式を定義している場合は、その方式を使います。この場合も、入力証跡、専門review結果、gate文書のpass条件を明記し、実装者の説明だけで判定しません。
+- repo-local supplementにreviewable gate実装が定義されていない場合は、`status: blocked` とし、`$specialist-reviewer-scaffold` へ戻します。
+- 実PJでは、同一Main Agentによる証跡なしの代替reviewable gateを行いません。代替reviewable gateは、このskill自体の開発・検証で明示された場合だけ行います。
 - 実装者の長い会話履歴や採用案を正当化する説明ではなく、証跡を入力にします。
 - 入力が不足している場合は推測でpassにせず、`blocked` または `needs-specialist-review` にします。
 
@@ -33,6 +34,8 @@ description: このskillは workflow-router のrouting結果、またはユー�
 - 計画時のドキュメント根拠と、文書不整合の扱い
 - 実行した検証コマンドと結果
 - 未実行検証の理由とリスク
+- 実行した専門reviewer、結果、残ったblocking issue
+- repo-local supplementで定義されたgate条件、またはreviewable gate agentの入力契約
 - 権限、tenant、PII、secret、ログ、外部入力への影響メモ
 - 必要に応じたスクリーンショット、ログ要約、E2E結果
 
@@ -71,6 +74,8 @@ description: このskillは workflow-router のrouting結果、またはユー�
 - ドキュメント根拠: 調査または計画で参照した仕様、設計、検証手順、review条件、AI利用ルールなどが根拠として記録されている。差分がその根拠と矛盾していない。
 - 検証結果: 関連テスト、build、lint、typecheck、E2E、smoke testなど、計画された検証の結果が記録されている。
 - 未実行検証: 未実行の理由とリスクが明記されている。
+- 専門review結果: repo-local supplementで必須とされた専門reviewerのblocking issueが解消済み、または未実行理由と戻り先が明記されている。
+- gate実装との対応: repo-local supplementが定めるreviewable gate agentまたはgate summary方式のpass条件と照合している。
 - 権限 / privacy / secret / ログ: 影響有無が確認されている。未確認なら安全扱いしない。
 - 専門review要否: repo固有の専門reviewerへ渡す必要があるか判定している。
 
@@ -155,6 +160,8 @@ status: pass / needs-specialist-review / blocked
 - ドキュメント根拠:
 - 検証結果:
 - 未実行検証:
+- 専門review結果:
+- gate実装との対応:
 - 権限 / privacy / secret / ログ:
 - 専門review要否:
 
@@ -191,6 +198,7 @@ status: pass / needs-specialist-review / blocked
 ## 禁止事項
 
 - 実装者の説明だけでpassにしない。
+- repo-local supplementのgate条件や必須reviewerを読まずにpassにしない。
 - 検証未実行や証跡不足を「問題なし」と扱わない。
 - テスト削除、skip、assertion弱体化を見逃してpassにしない。
 - ドキュメント根拠不足、または計画時の文書根拠と差分の矛盾を見逃してpassにしない。

@@ -41,7 +41,7 @@ description: ユーザー依頼、作業状況、既存成果物、差分、revi
 - 調査結果、計画、実装証跡、検証証跡、review結果、triage結果の有無
 - git diffや変更ファイルの有無
 - 調査または計画で使ったドキュメント根拠の有無
-- repo内 `test_runner`、reviewable gate agent、専門reviewer、routing文書の有無
+- repo内 `test_runner`、repo-local reviewable gate実装、専門reviewer、routing文書の有無
 - blocked理由、人間判断待ち、未確認事項
 
 入力不足でroutingできない場合は、`routing_status: blocked` とし、不足物を列挙します。
@@ -62,7 +62,7 @@ description: ユーザー依頼、作業状況、既存成果物、差分、revi
 | PJ文書群の矛盾、古い前提、未決事項、実装や検証手順との食い違いを点検したい | `project-doc-consistency-audit` |
 | 長い作業文脈や成果物を次workflowへ渡すpacketにしたい | `workflow-artifact-handoff` |
 | repo内に検証専用 `test_runner` と検証手順を作りたい | `test-runner-scaffold` |
-| repo内にreviewable gate agent、専門reviewer、review routingを作りたい | `specialist-reviewer-scaffold` |
+| repo内にreviewable gate実装、専門reviewer、review routingを作りたい | `specialist-reviewer-scaffold` |
 | repo内skill、agent、AGENTS.md、routing、検証手順を点検したい | `repo-skill-audit` |
 | 成熟済みrepo内の運用docs、repo-local skill、custom agent、review routing、検証手順を共通workflowへ寄せる移行計画を作りたい | `repo-workflow-migration-plan` |
 
@@ -87,7 +87,7 @@ description: ユーザー依頼、作業状況、既存成果物、差分、revi
 - ユーザーが最後に確認事項を求めているなら、`implementation-prep-workflow` の最後に人間が答えるべき判断だけを `decision-clarification-workflow` の形式で整理します。確認事項がない場合は、質問数0として報告します。
 - `verification-workflow` が必要だがrepo内 `test_runner` が未整備なら、検証へ進まず `test-runner-scaffold` を選びます。
 - 実装済みで検証証跡がないなら、reviewより先に `verification-workflow` を選びます。
-- `reviewable-gate-review` が必要だがrepo内reviewable gate agentが未整備なら、review判定へ進まず `specialist-reviewer-scaffold` を選びます。
+- `reviewable-gate-review` が必要だがrepo-local reviewable gate実装が未整備なら、review判定へ進まず `specialist-reviewer-scaffold` を選びます。gate実装は、repo内reviewable gate agent、または専門reviewer結果とgate文書の照合で作るgate summaryのどちらでもかまいません。
 - 調査や計画にドキュメント根拠がなく、期待動作やscopeの根拠が弱いなら、実装やreviewより先に `implementation-prep-workflow` へ戻します。
 - 文書群そのものの整合、古い前提、未決事項、実装や検証手順との食い違いを横断点検する依頼なら、実装や計画を始めず `project-doc-consistency-audit` を選びます。
 - review指摘が複数混ざっているなら、直接実装せず `post-review-fix-triage` を選びます。

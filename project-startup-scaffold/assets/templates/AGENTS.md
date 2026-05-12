@@ -16,9 +16,10 @@ AIエージェントは、既存コード、テスト、ドキュメントを確
 - PJ文書群の整合auditは `project_doc_auditor` custom agent へ委譲する。Main Agentは `project-doc-consistency-audit` を自分で実行しない
 - `project_doc_auditor` custom agent が使えない場合は停止し、人間に不足を報告する
 - 検証はrepo内にscaffoldされた `test_runner` custom agentへ委譲する。Main Agentは `verification-workflow` や検証コマンドを直接実行しない
+- formatterやformat checkは、repo手順でMain Agent担当とする場合だけ例外として実行し、その結果を検証証跡へ渡す
 - `test_runner` custom agent が使えない場合は停止し、人間に不足を報告する
-- reviewable gateはrepo内にscaffoldされた reviewable gate用custom agentへ委譲する。Main Agentは `reviewable-gate-review` を自分で実行しない
-- reviewable gate用custom agent が使えない場合は停止し、人間に不足を報告する
+- reviewable gateはrepo-local supplementで定義された実装を使う。custom agentへ委譲する方式、または専門reviewer結果とgate文書を照合するgate summary方式のどちらかを明記する
+- reviewable gate実装が未整備の場合は停止し、人間に不足を報告する
 - 依頼が粗い場合、目的、背景、期待動作、制約を整理する
 - 非自明な変更では、いきなり実装せず探索と計画を先に出す
 - ユーザーが示したファイルはヒントとして扱う
@@ -48,6 +49,7 @@ AIエージェントは、既存コード、テスト、ドキュメントを確
 - build / lint / typecheck 相当の検証を実行している
 - 実行したコマンドと結果を報告している
 - 未実行の検証がある場合、理由とリスクを報告している
+- repo-local supplementで必須とされた専門reviewとgate条件を確認している
 
 テストが失敗している差分はレビュー対象ではなく作業途中である。
 

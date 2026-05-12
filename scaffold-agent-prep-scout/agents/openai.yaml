@@ -1,0 +1,4 @@
+interface:
+  display_name: "Scaffold Agent Prep Scout"
+  short_description: "Design repo-local read-only prep scout agents for wf-explore."
+  default_prompt: "Use this skill to design repo-local read-only prep scout agents, their workflow supplement, and work-context evidence fields for wf-explore."

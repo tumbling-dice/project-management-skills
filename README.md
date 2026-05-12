@@ -45,6 +45,7 @@ Windows では symlink を使わず copy する。既存pathがある場合は�
 
 - `idiot`: blocked理由、未確認事項、人間判断待ちを少数の判断質問へ整理する依頼
 - `scaffold-project`: AI利用開始の初期文書、AGENTS、作業メモ雛形、Reviewable Gateを作る依頼
+- `scaffold-agent-prep-scout`: `wf-explore` 用のread-only prep scout、repo-local supplement、作業メモのevidence欄を整備する依頼
 - `scaffold-agent-test-runner`: repo内 `test_runner` agent や検証手順を整備する依頼
 - `scaffold-agent-reviewer`: repo固有の専門reviewer、reviewable gate実装、review routingを整備する依頼
 - `audit-docs`: README、AGENTS、PJ文書、検証手順、review条件の矛盾や古い前提を点検する依頼
@@ -84,6 +85,7 @@ reviewable gateはrepo-local supplementで定義された実装を使う。revie
 | Skill | 役割 |
 | --- | --- |
 | `scaffold-project` | 新規プロジェクトや文書が薄い既存プロジェクト向けに、初期コンテキスト、AI 利用ルール、AGENTS.md、作業メモ雛形などを作る。 |
+| `scaffold-agent-prep-scout` | `wf-explore` の前処理として、repo 固有の read-only prep scout agent、workflow supplement、作業メモの evidence 記録欄を設計、提案、作成する。 |
 | `scaffold-agent-reviewer` | `wf-review` を補完する repo 固有の専門 review skill や custom agent を設計、提案、作成する。 |
 | `scaffold-agent-test-runner` | repo 内に検証専用の `test_runner` custom agent と、agent が読む repo 固有の検証手順を作る。 |
 | `audit-repo-skill` | repo 内の AGENTS.md、`.codex/skills`、`.codex/agents`、review routing、検証手順を点検し、役割重複や危険な権限漏れを見つける。人間判断が不要なskill、agent、文書修正は同じ作業内で行う。 |
@@ -140,6 +142,7 @@ current artifacts
 候補 workflow:
 
 - `scaffold-project`
+- 必要に応じて `scaffold-agent-prep-scout`
 - 必要に応じて `scaffold-agent-test-runner`
 - 必要に応じて `scaffold-agent-reviewer`
 - 仕上げに `audit-repo-skill`
@@ -147,9 +150,10 @@ current artifacts
 流れ:
 
 1. `scaffold-project` でプロジェクト初期文書、AI 利用ルール、作業メモ雛形、Reviewable Gate の基本形を作る。
-2. 検証を実装者から分離したい場合は、`scaffold-agent-test-runner` で repo 内 `test_runner` と検証手順を作る。
-3. UI、permission、privacy、data migration など専門 review が必要な領域がある場合は、`scaffold-agent-reviewer` で repo 内 reviewer を作る。
-4. `audit-repo-skill` で、役割境界、検証手順、配布性、security 観点を確認する。
+2. 実装前の事実確認や計画候補整理を分離したい場合は、`scaffold-agent-prep-scout` で repo 内 prep scout と `wf-explore` supplement を作る。
+3. 検証を実装者から分離したい場合は、`scaffold-agent-test-runner` で repo 内 `test_runner` と検証手順を作る。
+4. UI、permission、privacy、data migration など専門 review が必要な領域がある場合は、`scaffold-agent-reviewer` で repo 内 reviewer を作る。
+5. `audit-repo-skill` で、役割境界、検証手順、配布性、security 観点を確認する。
 
 ### 2. バグ修正や小さな機能追加を進める
 
@@ -191,7 +195,25 @@ current artifacts
 3. `fix-in-plan` だけを `wf-implement` の再修正 scope として渡す。
 4. 検証証跡不足は `wf-verify`、ドキュメント根拠不足、計画外変更、事実不足は `wf-explore`、リスク受容は `idiot` または human decision へ戻す。
 
-### 4. 検証専用 agent を repo 内に整備する
+### 4. 実装前の prep scout を repo 内に整備する
+
+候補 workflow / skill:
+
+- `scaffold-agent-prep-scout`
+- `wf-explore`
+- `subagent-orchestration`
+- `subagent-execution`
+
+流れ:
+
+1. `scaffold-agent-prep-scout` で、repo の `AGENTS.md`、workflow map、repo-local skill、custom agent、作業メモtemplateを調査する。
+2. `wf-explore` の前処理として分離する read-only scout を、事実確認担当と計画候補整理担当に分けるか判断する。
+3. `.codex/agents/<scout-name>.toml`、repo-local orchestration / execution supplement、`docs/ai/workflow-map.md`、`docs/work/_template.md` のうち必要な最小セットを作る。
+4. Main Agent は `wf-explore` 中に repo-local supplement を読み、指定された prep scout へ `subagent-orchestration` の Delegation Packet で委譲する。
+5. prep scout は実装、検証実行、docs更新、採用判断、計画確定をせず、`done` / `blocked` と evidence を返す。
+6. scout未整備や起動不能の場合は、Main Agent が同じ観点を読解で補い、それでも計画確定に必要な事実、scope、risk、文書根拠が不足する場合だけ `wf-explore` を `blocked` にする。
+
+### 5. 検証専用 agent を repo 内に整備する
 
 候補 workflow / skill:
 
@@ -207,7 +229,7 @@ current artifacts
 3. Main Agent は repo手順で担当するformatterまたはformat checkだけを実行し、それ以外は `subagent-orchestration` の Delegation Packet でrepo内 `test_runner` へ `wf-verify` を委譲する。
 4. `test_runner` は `subagent-execution` に従い、指定された検証だけを実行し、`done` / `blocked` と検証証跡を返す。
 
-### 5. 専門 reviewer を repo 内に整備する
+### 6. 専門 reviewer を repo 内に整備する
 
 候補 workflow:
 
@@ -222,7 +244,7 @@ current artifacts
 3. 専門 reviewer は修正や検証実行ではなく、専門領域の findings、blocking / non-blocking、人間判断が必要な点を返す。
 4. `audit-repo-skill` で、専門 reviewer が release、merge、risk acceptance を承認する記述になっていないか確認する。
 
-### 6. 長い作業を次の agent や次の session へ渡す
+### 7. 長い作業を次の agent や次の session へ渡す
 
 候補 workflow:
 
@@ -242,7 +264,7 @@ current artifacts
 3. 次 workflow が読むべきファイル、読まなくてよい背景、禁止事項、完了条件、blocked 条件を packet 化する。
 4. 未承認の計画や未回答の判断は authority にせず、Open Items として残す。
 
-### 7. Repo 内 skill / agent を公開前に点検する
+### 8. Repo 内 skill / agent を公開前に点検する
 
 候補 workflow:
 
@@ -257,7 +279,7 @@ current artifacts
 5. blocking / high finding のうち自動修正できないものは、先に直す順序を整理する。
 6. scaffold、移行計画、人間判断が必要なものは、該当する scaffold skill、workflow、または human decision へ戻す。
 
-### 8. 成熟済みrepoの運用資産を共通workflowへ寄せる
+### 9. 成熟済みrepoの運用資産を共通workflowへ寄せる
 
 候補 workflow:
 
@@ -272,7 +294,7 @@ current artifacts
 3. 共通workflowへの移行先、repo側へ薄く残す内容、参照更新順、削除前の逆参照確認を整理する。
 4. 共通側不足を提案する場合でも、repo固有コマンド、reviewer名、app固有ルールは共通skillへ混ぜない。
 
-### 9. PJ文書群を実装計画の根拠として点検する
+### 10. PJ文書群を実装計画の根拠として点検する
 
 候補 workflow / agent:
 
@@ -292,6 +314,7 @@ current artifacts
 - 共通 skill は、共通 workflow、入力、禁止事項、出力形式を定める。
 - 工程workflowは、ユーザーまたは上流成果物が `$wf-explore` のように明示した場合に使う。
 - repo 固有の検証コマンド、専門 review 観点、custom agent の詳細は、各 repo 内 skill や docs に置きる。
+- prep scout は `wf-explore` の前処理として事実確認や計画候補整理を行う。実装、検証実行、docs更新、採用判断、計画確定、修正開始可否の判断はしない。
 - `test_runner` は検証を実行して証跡を返す。修正や review 判定はしない。
 - specialist reviewer は専門領域の review を行う。検証実行、修正、release、merge、risk acceptance はしない。
 - repo-local reviewable gate実装は `wf-review` を使い、レビュー可能条件と routing を判定する。実装は、repo内reviewable gate agent、または専門reviewer結果とgate文書を照合するgate summaryのどちらでもかまわない。repo 固有の深い設計判断を単独では承認しない。

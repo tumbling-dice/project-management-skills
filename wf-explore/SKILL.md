@@ -61,7 +61,11 @@ Codexで作業コンテクストをファイルへ作成または更新する場
 3. repo-local supplementを確認する。
    - 候補は `AGENTS.md`、`.codex/skills/`、`.codex/agents/`、`docs/ai/`、`docs/review/`、`docs/verification/`、`docs/work/_template.md`、repo固有のworkflow mapである。
    - supplementが、実装前調査用のread-only補助agentやplanning補助agentを指定している場合は、そのagentへ委譲するか、使わない理由を作業コンテクストに記録する。
+   - read-only prep scout は、観測事実を整理する context scout 相当と、要件、既存文書、作業候補、保留点を整理する planning scout 相当を指す。具体的なagent名、人格、model、分類語はrepo-local supplement側で決める。
+   - 委譲する場合は `subagent-orchestration` の Delegation Packet に従う。補助agentには、実装、test実行、docs更新、採用判断、計画確定、次担当決定をさせない。
+   - `prep補助agentの使用有無` には、使用したagent名またはrole category、結果状態 `done` / `blocked`、渡した主なevidence、返された事実や分類の要約、Main Agentが採用したevidenceと採用しなかったevidenceを記録する。
    - 補助agentが使えない場合でも、Main Agentは同じ観点を読解で補い、未使用理由、補った確認内容、残る不足を分けて記録する。
+   - 補助agentが未整備、起動不能、scope不一致であることだけでは `prep_status: blocked` にしない。Main Agentの読解補完後も計画確定に必要な事実、scope、risk、文書根拠が足りない場合だけ `blocked` とする。
 4. 関連ファイル、既存実装パターン、既存テストを確認する。
    - 既存テストの確認は、原則としてテストコード、fixture、設定、CI上の扱いを読むことである。
    - テスト実行は必須ではない。ユーザー依頼、repo手順、または原因切り分け上の必要性があり、破壊的でない場合だけ実行する。
@@ -213,6 +217,9 @@ clarification_status: ready_for_plan / ready_for_review / blocked
 - 認証、認可、tenant、PII、secret、ログ、外部入力への影響を未確認のまま安全扱いしない。
 - secrets、credential、本番DB接続情報、マスキングしていない顧客データ、本番ログの生データを成果物へ含めない。
 - 人間の代わりに仕様、security、privacy、release、risk acceptanceを確定しない。
+- read-only補助agentの結果を、Main Agentの採用判断なしに確定計画として扱わない。
+- planning補助agentがraw complaintを直接実装taskへ変換した結果を、そのまま確定計画にしない。
+- repo-local supplementで定めたscopeを越える広い探索を、補助agentへの暗黙前提にしない。
 
 ## 完了報告
 

@@ -1,11 +1,11 @@
 ---
 name: wf-implement
-description: ユーザーが $wf-implement を明示した場合だけ使う。人間が承認した実装計画をauthorityとして、計画範囲内の修正、対応テスト追加・更新、自己確認、関連検証、wf-review 呼び出し、指摘対応の再修正・再テスト・再レビュー反復を行う。
+description: ユーザーが $wf-implement を明示した場合だけ使う。人間が承認した実装計画をauthorityとして、計画範囲内の修正、対応テスト追加・更新、自己確認、関連検証、wf-review 前の audit-docs 呼び出し、wf-review 呼び出し、指摘対応の再修正・再テスト・再レビュー反復を行う。
 ---
 
 # wf-implement
 
-このskillは、人間が承認した実装計画に沿ってコード変更と対応テストを行い、検証後に `wf-review` を呼び出し、指摘があれば修正、テスト、再レビューを繰り返すためのワークフローである。承認済み計画を実装時のauthorityとして扱い、実装中やレビュー中に見つかった新しい判断は勝手に取り込まず、必要なら計画や調査へ戻す。
+このskillは、人間が承認した実装計画に沿ってコード変更と対応テストを行い、検証後に `audit-docs` で文書の同期漏れを点検し、文書差分を含めた最終diffを `wf-review` へ渡し、指摘があれば修正、テスト、再レビューを繰り返すためのワークフローである。承認済み計画を実装時のauthorityとして扱い、実装中やレビュー中に見つかった新しい判断は勝手に取り込まず、必要なら計画や調査へ戻す。
 
 ## 使う場面
 
@@ -13,6 +13,7 @@ description: ユーザーが $wf-implement を明示した場合だけ使う。�
 - 承認済み計画の範囲内で、実装修正と対応テスト追加・更新を進めたい。
 - 実装者として、差分、テスト、検証結果、未実行理由、残懸念を整理したい。
 - 実装後に `wf-review` を呼び、blocking issue があれば修正と再検証を繰り返したい。
+- `wf-review` へ渡す前に、計画時の文書根拠、設計書、検証手順、review条件が差分と食い違ったまま残っていないか `audit-docs` で点検したい。
 
 ## 使わない場面
 
@@ -85,18 +86,28 @@ description: ユーザーが $wf-implement を明示した場合だけ使う。�
 10. E2E、screenshot、visual確認を委譲する。
    - repo-local supplementがE2Eやvisual確認を後段に分けている場合は、専門reviewのblocking issueを解消した後に `test_runner` やrepo固有reviewerへ委譲する。
    - screenshot、golden、visual baselineの更新は、repo手順と人間承認に従い、暗黙に通過条件へ混ぜない。
-11. `wf-review` を呼び出す。
+11. `audit-docs` を呼び出す。
+   - `wf-review` へ進む前に、実装証跡、検証証跡、専門review結果、承認済み計画、計画時のドキュメント根拠、変更後の代表的な実装/テストファイルを `project_doc_auditor` へ渡す。
+   - audit目的は、実装差分により README、AGENTS、PJ文書、設計書、検証手順、review条件、代表的な作業メモが古い前提のまま残っていないか確認することに限定する。
+   - 実PJではMain Agentが `audit-docs` を直接実行しない。`project_doc_auditor` が使えない場合は、`execution_status: blocked` として必要なagentが無いことを報告する。
+   - auditは実装、検証実行、review判定を代替しない。文書差分を含めた最終diffを `wf-review` で確認できるようにするための前段である。
+12. audit結果を処理する。
+   - `auto-fixable`: `audit-docs` の条件に合う文書修正だけを同じ作業内で適用し、Applied Fixes と変更ファイルを実装証跡へ追記する。適用後の文書差分も `wf-review` 入力に含める。
+   - `needs-workflow`: 実装差分へ混ぜず、推奨戻り先を `wf-explore`、`migrate-workflow`、`audit-repo-skill` などへ分ける。
+   - `human-decision`: 仕様、scope、risk acceptance、security、privacy、release、本番操作に関わる判断として、人間判断または `idiot` へ戻す。
+   - `blocked`: `audit-docs` の委譲先不足、文書根拠不足、証跡不足を記録し、`execution_status: partial` または `blocked` として次の戻り先を示す。
+13. `wf-review` を呼び出す。
    - repo-local supplementにreviewable gate agentが定義されている場合は、そのagentへ委譲する。
    - repo-local supplementが、専門reviewer結果とreviewable gate文書の照合でgate summaryを作る方式を定義している場合は、その方式を使う。
-   - 承認済み計画、git diff、変更ファイル、テスト差分、計画時のドキュメント根拠、検証結果、未実行検証、非対象範囲、自己確認メモを渡す。
+   - 承認済み計画、git diff、変更ファイル、テスト差分、計画時のドキュメント根拠、検証結果、未実行検証、非対象範囲、自己確認メモ、`audit-docs` 結果、適用済み文書修正、残findingを渡す。
    - 実装者の長い会話履歴、未検証の仮説、採用案を正当化する説明をreview authorityとして渡さない。
    - repo-local supplementにgate実装がない場合は、同一Main Agentで代替判定せず `execution_status: blocked` として `$scaffold-agent-reviewer` へ戻す。
-12. review結果を処理する。
-   - `pass`: 実装サイクルを完了し、人間レビューへ渡す。
-   - `blocked`: 指摘が承認済み計画の範囲内で修正可能なら、修正、テスト、検証、再レビューを行う。
+14. review結果を処理する。
+   - `pass`: 実装、文書audit、reviewのサイクルを完了し、人間レビューへ渡す。
+   - `blocked`: 指摘が承認済み計画の範囲内で修正可能なら、修正、テスト、検証、`audit-docs`、再レビューを行う。
    - `needs-specialist-review`: repo内の専門reviewerへroutingする。必要なreviewerが未整備なら `scaffold-agent-reviewer` を提案する。
    - 計画外の変更、リスク受容、権限、secret、外部service、破壊的操作が必要なら人間判断へ戻す。
-13. 終了条件に達するまで、修正、テスト、検証、専門review、`wf-review` を繰り返す。
+15. 終了条件に達するまで、修正、テスト、検証、専門review、`audit-docs`、`wf-review` を繰り返す。
 
 ## 検証の扱い
 
@@ -127,7 +138,7 @@ review入力には最低限次を渡す。
 
 review結果ごとの扱いは次の通りである。
 
-- `pass`: `execution_status: completed` とし、人間レビューへ渡せる証跡をまとめる。
+- `pass`: `audit-docs` 実行後の文書差分を含む最終diffがreviewを通過した状態として、`execution_status: completed` とし、人間レビューへ渡せる証跡をまとめる。
 - `blocked`: blocking issueを分類する。計画範囲内で修正できるものは修正、対応テスト、検証、再reviewを行う。計画外なら停止して戻り先を示す。
 - `needs-specialist-review`: 実装修正で解消できる指摘ではないため、専門reviewへroutingする。repo内reviewerがなければ `scaffold-agent-reviewer` へ戻す。
 
@@ -144,10 +155,18 @@ review結果ごとの扱いは次の通りである。
 - subagentの結果が古くなった場合は、統合判断に使わない。
 - review用subagentやrepo固有reviewerを呼ぶ場合は、修正作業のsubagentと同じ文脈を渡さず、diffや検証結果などの証跡を渡す。
 
+## Documentation Audit
+
+`audit-docs` は、`wf-review` 前に設計書や検証手順が古いまま残ることを防ぐ文書整合gateである。実装差分の正否を判定するものではない。
+
+- `audit_status: pass`: 文書更新不要、またはauto-fixableな文書修正を適用済み。
+- `audit_status: findings`: `needs-workflow` または `human-decision` が残っている。`wf-review` へ渡す場合は、残finding、影響、次の戻り先を証跡に含める。
+- `audit_status: blocked`: `project_doc_auditor` が使えない、またはauditに必要な証跡が不足している。`execution_status: completed` にはしない。
+
 ## execution_status
 
-- `completed`: 計画範囲内の実装、対応テスト、自己確認、必要な検証証跡が揃い、`wf-review` が `pass` した。
-- `partial`: 一部実装、一部検証、または専門review routingは完了したが、未実行検証、環境不足、専門review待ち、残作業がある。
+- `completed`: 計画範囲内の実装、対応テスト、自己確認、必要な検証証跡が揃い、`audit-docs` の呼び出しと必要な自動文書修正が完了し、文書差分を含む最終diffで `wf-review` が `pass` した。
+- `partial`: 一部実装、一部検証、専門review routing、または `audit-docs` は完了したが、未実行検証、環境不足、専門review待ち、残作業、文書更新workflow待ちがある。
 - `blocked`: 計画未承認、scope不足、影響範囲不足、権限不足、環境不足、計画外指摘、人間判断待ちで進められない。
 
 `completed` は「人間レビューへ渡せる材料が揃い、共通gateを通過した」という意味である。merge、release、本番操作、risk acceptanceを許可する意味ではない。
@@ -221,13 +240,22 @@ execution_status: completed / partial / blocked
 - specialist review:
 - action taken:
 
+## Documentation Audit
+
+- executor: project_doc_auditor / not_available / not_run
+- audit_status: pass / findings / blocked
+- scope:
+- findings:
+- applied fixes:
+- next action:
+
 ## Remaining Concerns
 
 - なし / あり
 
 ## Next Step
 
-- human review / specialist review / wf-verify / wf-explore / human decision
+- human review / specialist review / wf-verify / wf-explore / audit-docs / audit-repo-skill / migrate-workflow / human decision
 ```
 
 ## 禁止事項
@@ -241,7 +269,9 @@ execution_status: completed / partial / blocked
 - 実行していない検証を実行済みとして扱わない。
 - formatterまたはformat check以外の検証コマンドをMain Agentが先回り実行しない。
 - `wf-review` を呼ばずに `execution_status: completed` としない。
+- `wf-review` 前の `audit-docs` 呼び出しを省略して `execution_status: completed` としない。
 - review指摘が計画外の場合に、承認なしで修正範囲を広げない。
+- `audit-docs` のfindingを、実装差分のreview判定や検証結果として扱わない。
 - 同じblocking issueで反復しているのに、追加調査や人間判断へ戻さず修正を続けない。
 - merge、release、本番操作、risk acceptanceを承認しない。
 - ファイルへ実装証跡を作成または更新する場合、shellのheredoc、`cat > file`、`tee` などで本文を書き込まない。`apply_patch` を使う。
@@ -256,4 +286,5 @@ execution_status: completed / partial / blocked
 - 追加または更新したテスト
 - 実行または委譲した検証コマンドと結果
 - `wf-review` の結果と反復回数
+- `audit-docs` の結果、適用した自動文書修正、残finding
 - 未実行検証、残懸念、次の戻り先

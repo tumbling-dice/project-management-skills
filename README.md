@@ -66,7 +66,7 @@ reviewable gateはrepo-local supplementで定義された実装を使う。revie
 | Skill | 役割 |
 | --- | --- |
 | `wf-explore` | 実装前に調査、実装計画、修正開始可否、人間レビュー観点、最後の判断質問整理を単一の作業コンテクストで行う。人間がレビューして承認するまで実装を始めない。 |
-| `wf-implement` | 人間が承認した計画を authority として、計画範囲内の実装、対応テスト、自己確認、検証、`wf-review` まで進める。 |
+| `wf-implement` | 人間が承認した計画を authority として、計画範囲内の実装、対応テスト、自己確認、検証、`audit-docs`、`wf-review` まで進める。 |
 | `wf-verify` | repo内 `test_runner` が、実装後または reviewable gate 前に必要な検証範囲を確定し、検証コマンドを実行して検証証跡をまとめる。 |
 | `wf-review` | repo-local reviewable gate実装が、差分が人間レビューや専門 review へ進める状態か、計画、diff、テスト、計画時のドキュメント根拠、検証結果などの証跡から判定する。 |
 | `wf-review-triage` | 人間 review、専門 review、reviewable gate の指摘を、計画内修正、ドキュメント根拠不足、検証不足、再計画、追加調査、人間判断などに分類する。 |
@@ -108,6 +108,7 @@ wf-explore
   -> wf-verify
   -> specialist review when repo-local rules require it
   -> E2E / visual verification when repo-local rules require it
+  -> audit-docs
   -> wf-review
   -> human review / specialist review
 ```
@@ -159,6 +160,7 @@ current artifacts
 - `wf-implement`
 - `wf-verify`
 - `wf-review`
+- `audit-docs`
 
 流れ:
 
@@ -169,7 +171,8 @@ current artifacts
 5. formatter以外の検証は、repo内 `test_runner` custom agentへ `wf-verify` を委譲する。
 6. repo-local supplementで必須とされた専門reviewを実行し、blocking issueが残る間はE2Eやvisual確認へ進みない。
 7. repo-local supplementに従い、E2E、screenshot、visual確認を後段で実行または委譲する。
-8. repo-local supplementで定義されたreviewable gate実装へ `wf-review` を渡し、人間レビューや専門 review へ進める状態か、計画時のドキュメント根拠と差分が矛盾していないかを確認する。
+8. `wf-implement` から `audit-docs` を呼び、設計書、検証手順、review条件、代表的な作業メモが実装差分に対して古いまま残っていないか確認する。人間判断が不要な文書修正は同じ作業内で適用し、判断が必要なものは戻り先を記録する。
+9. repo-local supplementで定義されたreviewable gate実装へ `wf-review` を渡し、人間レビューや専門 review へ進める状態か、計画時のドキュメント根拠、文書差分、実装差分、検証結果が矛盾していないかを確認する。
 
 ### 3. Review 指摘を受けて再修正する
 
@@ -293,6 +296,7 @@ current artifacts
 - specialist reviewer は専門領域の review を行う。検証実行、修正、release、merge、risk acceptance はしない。
 - repo-local reviewable gate実装は `wf-review` を使い、レビュー可能条件と routing を判定する。実装は、repo内reviewable gate agent、または専門reviewer結果とgate文書を照合するgate summaryのどちらでもかまわない。repo 固有の深い設計判断を単独では承認しない。
 - バグ修正や実装の根拠になる要件、設計、検証手順、AGENTS、review条件は、`wf-explore` で根拠資料として確認する。文書と実態が食い違う場合は、既存証跡だけで直せるものを更新し、それ以外は追加調査、人間判断、または実装前準備へ戻す。
+- `wf-implement` は `wf-review` の前に `audit-docs` を呼び、設計書や検証手順が古いまま残っていないか確認する。`audit-docs` のfindingは文書整合の扱いであり、実装差分のreview判定や検証結果の代替にはしない。
 - `audit-docs` は文書群を点検する。`project_doc_auditor` は文書を編集しないが、Main Agent はaudit結果のうち人間判断が不要な文書修正を適用する。実装、検証、review判定は行わない。
 - `migrate-workflow` は成熟済みrepoの運用資産を共通workflowへ寄せる対応表を作る。移行対象ファイルの削除、移動、編集、検証、review判定は行わない。
 - `audit-docs` は、この共通repoの `project_doc_auditor` custom agentで実行する。`wf-verify` は各repo内にscaffoldされた `test_runner` で実行する。`wf-review` は各repoのrepo-local supplementで定義されたgate実装を使う。Main Agentは同一agent内で証跡なしに代替判定しない。

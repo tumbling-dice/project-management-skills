@@ -1,6 +1,6 @@
 # 作業文脈の作成手順
 
-`docs/work/_template.md`、チケット雛形、レビュー説明雛形を作るときに使います。
+`docs/work/_template.md`、チケット雛形、レビュー説明雛形を作るときに使う。
 
 ## 作業文脈templateの目的
 

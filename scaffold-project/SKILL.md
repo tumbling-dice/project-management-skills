@@ -58,7 +58,7 @@ description: ユーザーが自然文で、AIコーディングエージェン�
 - `references/project-charter.md`: 目的、ユーザー、MVP、非対象範囲、成功条件。
 - `references/requirements-brief.md`: ユースケース、業務ルール、権限、データ、E2E候補。
 - `references/architecture-brief.md`: 技術、認証、tenant、DB、deploy、ログ方針。
-- `references/agent-instructions.md`: `AGENTS.md` / `CLAUDE.md` 初稿ルール。
+- `references/agent-instructions.md`: `AGENTS.md` 初稿ルール。
 - `references/work-context.md`: 作業メモと変更説明の雛形。
 - `references/reviewable-gate.md`: レビュー開始条件。
 - UIを持つPJでは `references/requirements-brief.md` と `references/workflow.md` を使い、画面責務とvisual review候補を追加文書へ分ける。

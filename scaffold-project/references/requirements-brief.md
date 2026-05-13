@@ -4,9 +4,9 @@
 
 ## 目的
 
-Requirements Briefは、PJ Charterを業務上の振る舞い、権限境界、データ概念、最初の検証候補へ落とすための文書です。すべての要件が確定する前でも使える形にします。
+Requirements Briefは、PJ Charterを業務上の振る舞い、権限境界、データ概念、最初の検証候補へ落とすための文書である。すべての要件が確定する前でも使える形にする。
 
-UIを持つPJでは、Requirements Briefにすべての画面詳細を詰め込まず、画面責務、主要状態、E2E候補を `docs/project/screen-catalog.md` へ分けます。visual baselineやscreenshot reviewを早期に使う場合は、安定仕様を `docs/project/screen-contract.md` へ分けます。
+UIを持つPJでは、Requirements Briefにすべての画面詳細を詰め込まず、画面責務、主要状態、E2E候補を `docs/project/screen-catalog.md` へ分ける。visual baselineやscreenshot reviewを早期に使う場合は、安定仕様を `docs/project/screen-contract.md` へ分ける。
 
 ## 必須セクション
 

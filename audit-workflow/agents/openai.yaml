@@ -1,0 +1,7 @@
+interface:
+  display_name: "audit-workflow"
+  short_description: "wf-*系workflowを一時worktreeで完走検証し自己改善する"
+  default_prompt: "$audit-workflow を使って、このrepo内のAGENTS.md、docs、repo-local skill、custom agent、review routing、検証手順が wf-* 系workflowで完走できるかを一時worktreeで検証し、scaffold / audit 系skillで補正できるrepo-local不足は同じ作業内で修正してください。"
+
+policy:
+  allow_implicit_invocation: true

@@ -62,7 +62,7 @@ Windows では symlink を使わず copy する。既存pathがある場合は�
 
 reviewable gateはrepo-local supplementで定義された実装を使う。reviewable gate用custom agentへ委譲する方式、または専門reviewer結果とgate文書の照合でgate summaryを作る方式を許容する。Main Agent は証跡なしに `wf-review` を代替判定しない。
 
-同一 `wf-implement` 実行中の `test_runner` は、原則として同じagent sessionを再利用する。reviewable gateの最終判定は、原則としてreview iterationごとに新しいreviewer sessionを使う。専門reviewerや前回指摘の解消確認は、同一task内で同じ観点を継続確認する場合に限り再利用してよい。
+同一 `wf-implement` 実行中の `test_runner` は、最初のsession idを保持し、原則として同じagent sessionを再利用する。新しいsessionは、古いdiff、古いcheckout、壊れた環境状態、誤った前提、別task、別ブランチ、別worktreeなどの理由がある場合だけ使い、理由を検証証跡に残す。reviewable gateの最終判定は、原則としてreview iterationごとに新しいreviewer sessionを使う。専門reviewerや前回指摘の解消確認は、同一task内で同じ観点を継続確認する場合に限り再利用してよい。
 
 ## Skill 一覧
 

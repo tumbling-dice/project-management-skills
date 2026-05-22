@@ -46,6 +46,7 @@ repo内 `test_runner` またはverification手順が使えない場合は、Main
 - 検証範囲は、承認済み計画、差分、repo固有の検証手順から決める。
 - 検証コマンドを共通skillへ固定しない。
 - 検証workflowは repo内 `test_runner` への委譲を必須とする。
+- 同一 `wf-implement` 実行中の再検証では、既存の `test_runner` sessionを原則として再利用する。
 - formatterやformat checkは、repo手順でMain Agent担当とされている場合だけ例外としてこのworkflow外の入力証跡にする。
 - repo内 `test_runner` が未整備の場合は、Main Agentが代替実行せず、`verification_status: blocked` として `$scaffold-agent-test-runner` へ戻す。
 - 検証失敗をこのskillで修正しない。
@@ -64,10 +65,21 @@ repo内 `test_runner` またはverification手順が使えない場合は、Main
 - repo固有の検証手順、CI、script、既存の開発用コマンド
 - 非対象範囲
 - 権限、secret、外部service、dev server、localhost、artifactに関する注意点
+- 同一 `wf-implement` 実行中に取得済みの `existing_test_runner_session_id`
+- `recall_policy`: `reuse-existing` / `first-run` / `new-session-with-reason`
+- 新しいsessionが必要な場合の `new_session_reason`
 
 入力が不足して検証範囲を決められない場合は、検証を推測で広げず `verification_status: blocked` として不足物を列挙する。
 
 削除済みファイル、過去のdiff内にだけ見える計画、会話内で承認済みだと確認できない古い計画は、現行の承認済み入力として扱わない。参考観測として記録してもかまわないが、それだけを根拠に検証範囲を確定しない。
+
+## Test Runner Session Lifecycle
+
+`wf-implement` から呼ばれる場合、`wf-verify` は `test_runner` session lifecycle の証跡を返す。最初の検証では `existing_test_runner_session_id` が空でよい。`test_runner` を起動したら、作成された `executor_session_id` を返し、Main Agent が同じ `wf-implement` 実行中の再検証で保持できるようにする。
+
+同一 `wf-implement` 実行中に `existing_test_runner_session_id` が渡された場合は、古いdiff、古いcheckout、壊れた環境状態、誤った前提、別task、別ブランチ、別worktreeのいずれかに該当しない限り、そのsessionへ追加の検証packetを送る。新しいsessionを作る場合は、許可された理由を `new_session_reason` に書く。
+
+`existing_test_runner_session_id` があるのに新しいsessionを作り、`new_session_reason` がない場合は `verification_status: pass` にしない。検証そのものが実行済みでも、session lifecycle証跡が欠けているため `partial`、または検証統合に必要な情報が不足していれば `blocked` とする。
 
 ## 出力先
 
@@ -83,9 +95,9 @@ repo内 `test_runner` またはverification手順が使えない場合は、Main
 
 1. 承認済み計画、差分、変更ファイル、追加または更新したテスト、非対象範囲、formatter証跡を確認する。
 2. repo-local verification手順と `test_runner` の入力契約を確認する。
-3. `test_runner` へ検証を委譲する。委譲文の形式、権限、timeout、artifact、禁止操作はrepo-local手順に従う。
+3. `test_runner` へ検証を委譲する。`existing_test_runner_session_id` があり、例外理由がなければ、そのsessionへ追加packetを送る。初回または許可された例外では新しいsessionを起動する。委譲文の形式、権限、timeout、artifact、禁止操作はrepo-local手順に従う。
 4. `test_runner` の結果、ログ要約、artifact、warning、未実行理由を検証証跡へまとめる。
-5. state fileがある場合は、`commands` のstatus/resultへ反映できる形で実行結果を整理する。
+5. state fileがある場合は、`commands` のstatus/resultへ反映できる形で実行結果を整理し、必要なら `test_runner_session_id`、`session_reused`、`new_session_reason` をnotesへ残す。
 6. 失敗や未実行を分類し、次の戻り先を決める。
 7. `wf-review` へ渡せる証跡を出力する。
 
@@ -135,6 +147,10 @@ repo内 `test_runner` またはverification手順が使えない場合は、Main
 ```text
 verification_status: pass | fail | blocked | partial
 executor: test_runner | not_available
+executor_session_id: <test_runner session id or unknown>
+previous_session_id: <existing id or none>
+session_reused: true | false | unknown
+new_session_reason: <allowed reason or none>
 commands: <passed / failed / not_run counts or one-line summary>
 artifact: <path or none>
 blocking: <none or one-line summary>

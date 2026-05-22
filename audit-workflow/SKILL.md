@@ -59,7 +59,7 @@ description: ユーザーが自然文で、repo内ドキュメントやAGENTS.md
    - specialist review / review系
    - E2E / visual / evidence確認系
    - repo-local docsやAGENTSでworkflow内呼び出し候補として定義されたagent
-6. 棚卸し結果を `Expected Subagent Coverage` として、agent名、role、呼び出しworkflow、trigger条件、必要な入力証跡に分ける。
+6. 棚卸し結果を `Expected Subagent Coverage` として、agent名、role、呼び出しworkflow、trigger条件、必要な入力証跡に分ける。再利用が必要なagentは、期待session数、実session id、再利用有無、新session例外理由も記録対象にする。
 7. 既知のrepo-local不足が明白で、scaffold / audit 系skillで補正できる場合は、本検証前に必要最小限だけ修正してよい。
 
 ## 一時worktree
@@ -134,6 +134,7 @@ repoに実装やtestが存在しない場合は、`scaffold-project`、`scaffold
    - docs / 実装 / test の変更を必ず発生させる。
    - formatter、linter、test、build、typecheck、E2Eは実行しない。
    - `wf-verify` は `test_runner` へ委譲するが、実コマンドは実行せず `not_run` 証跡を返すように委譲する。
+   - 同一 `wf-implement` 実行中に `wf-verify` を複数回呼ぶ場合は、最初の `test_runner` session idを保持し、以後は同じsessionへ追加packetを送る。新sessionが必要な場合は許可された例外理由をWorkflow Traceへ残す。
    - `audit-docs` は `project_doc_auditor` へ委譲する。
    - `wf-review` はrepo-local reviewable gate実装へ委譲または照合する。
 5. 親Main Agentが、Workflow Traceを回収して評価する。
@@ -168,6 +169,10 @@ Evidence:
 - Included uncommitted changes:
 - Scenario requirements:
 - Expected Subagent Coverage:
+- Reusable session rules:
+  - Preserve the first test_runner session id during one wf-implement execution.
+  - Reuse that session for repeated wf-verify calls unless stale diff, stale checkout, broken environment state, wrong assumptions, another task, another branch, or another worktree applies.
+  - Record session ids and any new-session exception reason.
 - Output format:
 
 Deliver:
@@ -207,6 +212,10 @@ Done when:
 ## Subagents
 - agent:
   role:
+  session_id:
+  previous_session_id:
+  session_reused: true / false / not_applicable / unknown
+  new_session_reason:
   expected: yes / no
   called by workflow:
   trigger covered: yes / no
@@ -219,6 +228,10 @@ Done when:
   role:
   expected workflow:
   trigger condition:
+  expected session count:
+  actual session ids:
+  reused/new:
+  new-session exception reason:
   called: yes / no
   if not called:
   coverage finding:
@@ -258,6 +271,9 @@ Done when:
 - `wf-implement` で docs / 実装 / test がすべて変更されたか。
 - formatter、linter、test、build、typecheck、E2Eを実行していないか。
 - `wf-verify` がrepo内 `test_runner` に委譲され、実コマンド未実行の証跡とstate fileのcommandsへ反映できる結果を返したか。
+- 同一 `wf-implement` 実行中の複数回 `wf-verify` で、最初の `test_runner` session idが保持され、許可された例外がない限り同じsessionへ再委譲されたか。
+- `test_runner` が複数sessionになった場合、古いdiff、古いcheckout、壊れた環境状態、誤った前提、別task、別ブランチ、別worktreeのいずれかの理由がWorkflow Traceに残っているか。
+- Workflow Traceと `Expected Subagent Coverage` に、下位subagentの `session_id` または `agent_id` が記録されているか。idがない場合、coverageはrecall behaviorを立証できないfindingとして扱う。
 - `audit-docs` が `project_doc_auditor` に委譲されたか。
 - `wf-review` がrepo-local reviewable gate実装を使ったか。
 - specialist reviewerやrepo-local reviewerが複数ある場合に、すべてroutingされたか。
@@ -289,6 +305,8 @@ findingは次に分類する。
 - `blocked`: 共通skill側の不足、人間判断、patch適用失敗、git worktree作成失敗、シナリオ作成不能、または2回以内に完走できない問題が残った。
 
 `pass` と `findings-fixed` は、`Expected Subagent Coverage` の全subagentが呼ばれた場合だけ使える。呼ばれていないagentが1つでも残り、補正や再検証でも解消できない場合は `blocked` とする。
+
+同一 `wf-implement` 実行中に複数の `test_runner` sessionが観測され、許可された例外理由がない場合は `pass` / `findings-fixed` にしない。下位subagentのsession idがTraceに欠け、再利用されたか判定できない場合も、少なくともaudit findingとして扱う。
 
 `blocked` の場合でも、まず完走を試みたWorkflow Trace、補正済み内容、残った原因、次の戻り先を報告する。
 

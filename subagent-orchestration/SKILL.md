@@ -77,3 +77,9 @@ subagent 側の共通実行規約は `subagent-execution` を前提とする。
 - stale result を避けるため、入力 docs、diff、test 結果、delegated scope が Main Agent 側で更新されたら、古い結果は破棄または再実行する。
 - ここでいう `破棄` は、古い結果を統合判断、次委譲の authority、review 依頼の前提に使わないことを指す。
 - delegated scope または evidence が実質的に変わったなら、新しい task として fresh な委譲文を作り直す。古い agent がまだ開いているなら close を検討する。
+
+## Reusable Subagent Sessions
+
+workflow固有の規則で同じsubagent sessionの再利用が定義されている場合だけ、Main Agent は初回の agent ID を保持し、後続packetをその既存sessionへ送る。すべてのsubagentを既定で再利用するわけではない。
+
+再利用が定義されたworkflowでは、後続packetに前回session id、今回の追加scope、変更されたevidence、再実行する観点を入れる。新しいsessionへ切り替える場合は、workflowが許可した例外理由を記録する。理由がない新sessionは、recall behaviorを立証できない結果として扱う。

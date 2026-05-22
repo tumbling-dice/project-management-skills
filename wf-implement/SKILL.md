@@ -92,11 +92,19 @@ state fileには、実装中に変わるworkflow status、進捗、対象ファ�
 
 - formatterとformat checkは、repo手順でMain Agent担当とされている場合だけ例外としてMain Agentが実行する。
 - `wf-verify`、専門review、E2E、visual確認、`wf-review` の入力と順序はrepo-local supplementに従う。
-- 同一 `wf-implement` 実行中に複数回 `wf-verify` を呼ぶ場合、`test_runner` は原則として同じagent sessionを再利用する。再検証では、前回の検証結果、今回のdiffまたは修正要約、再実行するコマンド、前回から変わった前提だけを追加で渡す。
-- `test_runner` が古いdiff、古いcheckout、壊れた環境状態、誤った前提に依存している疑いがある場合、または別task、別ブランチ、別worktreeの検証へ移る場合は、新しいsessionへ委譲する。
 - reviewerのagent session lifecycleは、`wf-review` の規則に従う。
 - 後段workflowの結果が `blocked` の場合は、実装差分で解消できるもの、再計画が必要なもの、人間判断が必要なものに分ける。
 - 検証結果やreview結果が `pass` でも、merge、release、本番操作、リスク受容を承認しない。
+
+## Test Runner Session Lifecycle
+
+同一 `wf-implement` 実行中に複数回 `wf-verify` を呼ぶ場合、Main Agent は最初の `wf-verify` が返した `executor_session_id` を現在の `test_runner_session_id` として保持する。以後の `wf-verify` には `existing_test_runner_session_id` として渡し、同じsessionへ追加packetを送る。
+
+再検証では、前回の検証結果、今回のdiffまたは修正要約、再実行するコマンド、前回から変わった前提だけを追加で渡す。長い実装会話や未採用案を再送しない。
+
+新しい `test_runner` sessionを作れるのは、古いdiff、古いcheckout、壊れた環境状態、誤った前提、別task、別ブランチ、別worktreeのいずれかに該当する場合だけである。新しいsessionを作る場合は、検証証跡またはstate file notesに `test_runner_session_id`、`reused: false`、`previous_session_id`、`new_session_reason` を残す。通常の再利用時は `test_runner_session_id` と `reused: true` を残す。
+
+`wf-verify` の結果に session id がない、または新しいsessionの理由がない場合は、検証結果だけで `execution_status: completed` にしない。`wf-verify` へ証跡補完を戻すか、補完できない理由を `partial` / `blocked` に含める。
 
 ## subagentを使う場合
 

@@ -147,6 +147,8 @@ fork_context: false
 
 - 対象差分:
 - 対象外:
+- existing session id:
+- recall mode: initial / recall / new-session-with-reason
 
 ## Goal
 
@@ -160,6 +162,8 @@ fork_context: false
 
 ## Evidence
 
+- previous_test_runner_session_id:
+- new_session_reason:
 - command:
   reason:
   timeout:
@@ -172,6 +176,7 @@ fork_context: false
 ## Deliver
 
 - `Status: done` または `Status: blocked` で始める。
+- current session id、initial / recall、session reuse有無、新session理由を返す。
 - 実行したcommand、result、duration、重要ログ、artifact、warning、未実行理由、state fileへ反映するstatus/resultを返す。
 
 ## Done when
@@ -190,6 +195,10 @@ fork_context: false
 # Verification Result
 
 Status: done / blocked
+Session: <current session id>
+Session mode: initial / recall / new-session-with-reason
+Previous session: <id or none>
+New session reason: <allowed reason or none>
 Scope handled: <検証した差分、command、responsibility>
 Result: <検証結果の要約>
 Verification: <実行したcommand、result、duration、重要ログ、artifact、warning>

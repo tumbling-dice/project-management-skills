@@ -63,7 +63,7 @@ description: ユーザーが自然文で、UIの目的から画像モックを�
    - use caseは `ui-mockup` とする。
    - 既存UI制約、surface type、主タスク、非テキスト要素、避ける表現をpromptへ入れる。
    - 画像内テキストは正確性を期待しすぎず、layoutとvisual anchorの検討材料として扱う。
-5. Mock Breakdownを作る。
+5. Internal Extraction Pointsで棚卸しする。
    - layout regions、情報階層、density、container、非テキスト要素、visual anchor、採用しない要素、代替禁止を抽出する。
 6. 契約へ変換する。
    - Design Brief
@@ -74,7 +74,7 @@ description: ユーザーが自然文で、UIの目的から画像モックを�
 7. 仕様根拠へ反映する。
    - `screen-catalog.md` には、画面責務、主要状態、responsive expectations、accessibility notes、E2E / visual check candidateを追加する。
    - 対象画面のscreen specには、Stable visual / layout expectations、Allowed changes、Forbidden changes、State coverage、Viewport coverage、Screenshot / visual baseline、Review notesを追加する。
-   - 文書へ直接書けない場合は、貼り付け可能なDocumentation Updateとして出す。
+   - 文書へ直接書けない場合は、人間判断が必要な不足情報として扱う。
 
 ## imagegen prompt方針
 
@@ -93,173 +93,35 @@ Constraints: create a plausible implementable UI, not a marketing poster
 Avoid: decorative gradients unless justified, card grids unless repeated items require cards, pill UI for ordinary controls, nested cards, placeholder gray boxes
 ```
 
-## Mock Breakdown
+## Internal Extraction Points
 
-画像生成後に、次を必ず書く。
+画像生成後に次を抽出して契約へ反映する。人間へ戻すのは、未決の仕様判断やasset可否だけである。
 
-```md
-## Mock Breakdown
+- layout: regions, navigation, workspace, supporting panels, repeated model
+- hierarchy: primary focus, secondary info, density, spacing
+- assets: icons, images, illustrations, avatars/logos, charts/maps/media, texture
+- anchors: non-text elements that must remain
+- adopt: contract decisions to keep
+- reject: generated details not used as requirements
+- forbidden substitutions: text-only, gradient, emoji, empty box, generic card
 
-### Layout
+## 報告方針
 
-- regions:
-- navigation:
-- primary workspace:
-- supporting panels:
-- repeated content model:
-
-### Hierarchy And Density
-
-- primary focus:
-- secondary information:
-- density:
-- spacing implications:
-
-### Asset Inventory
-
-- icons:
-- images:
-- illustrations:
-- avatars/logos:
-- charts/maps/media:
-- background or texture:
-
-### Visual Anchors
-
-- elements that prevent the screen from becoming text-only:
-- minimum non-text elements that must remain:
-
-### Adopt
-
-- contract decisions to keep:
-
-### Do Not Adopt
-
-- generated details that should not become implementation requirements:
-
-### Forbidden Substitutions
-
-- elements that must not be replaced with text, gradient, emoji, empty box, or generic card:
-```
+契約内容は対象docsへ反映する。会話上の最終報告は、差分から判断できないことだけに絞る。
 
 ## 出力形式
 
-```md
-# UI Mock Contract Documentation Update
+```text
+判断理由:
+- なし
 
-## Status
-
-contract_status: ready / blocked
-
-## Source
-
-- ui goal:
-- surface type:
-- generated mock:
-- existing UI constraints:
-- target docs:
-- open assumptions:
-
-## Design Seed
-
-- primary user task:
-- target user:
-- density:
-- tone constraints:
-- visual direction:
-- avoid:
-
-## Mock Breakdown
-
-<!-- Follow the Mock Breakdown format. -->
-
-## Design Brief
-
-- purpose:
-- user task:
-- information hierarchy:
-- density:
-- visual tone:
-- non-goals:
-
-## Layout Contract
-
-- regions:
-- navigation:
-- main workspace:
-- supporting panels:
-- repeated item rules:
-- empty/loading/error states:
-- responsive behavior:
-
-## Asset Contract
-
-- required icons:
-- required images:
-- required illustrations:
-- required avatars/logos:
-- required charts/maps/media:
-- asset source:
-- aspect ratios and crop behavior:
-- fallback rules:
-- fallback allowed:
-- blocked if unavailable:
-
-## Component Contract
-
-- buttons:
-- cards:
-- tables/lists:
-- badges/pills:
-- tabs/filters:
-- forms:
-- charts/media panels:
-- dialogs/drawers:
-
-## Visual Acceptance Criteria
-
-- must show:
-- must not show:
-- desktop checks:
-- mobile checks:
-- screenshot review fail conditions:
-
-## Screen Catalog Update
-
-- screen:
-- purpose:
-- primary user action:
-- entry points:
-- data sources:
-- main states:
-- empty / loading / error states:
-- permission / auth state:
-- responsive expectations:
-- accessibility notes:
-- E2E / visual check candidate:
-- out of scope:
-- open questions:
-
-## Screen Contract Update
-
-- screen:
-- stable behavior:
-- stable visual / layout expectations:
-- allowed changes:
-- forbidden changes:
-- state coverage:
-- viewport coverage:
-- screenshot / visual baseline:
-- related tests:
-- review notes:
-
-## Later Workflow Notes
-
-- docs to read:
-- stable contracts:
-- must not:
-- blocked when:
+人間判断:
+- なし
 ```
+
+判断理由には、画像モックから何を採用または不採用にしたか、既存UI制約をどう解釈したかなど、diffだけでは追いにくい判断だけを書く。
+
+人間判断には、未決の仕様判断、asset可否、scope判断、追加確認が必要な点だけを書く。
 
 ## 禁止事項
 
@@ -274,11 +136,4 @@ contract_status: ready / blocked
 
 ## 完了報告
 
-最後に次を報告する。
-
-- `contract_status`
-- 生成した画像モックの扱い
-- 作成または更新したUI文書
-- 作成した契約の要点
-- Asset Contractの要点
-- blockedの場合の不足情報
+出力形式そのものを完了報告とする。

@@ -358,7 +358,7 @@ current artifacts
 
 1. `ui-mock-contract` で、UI目的、surface type、既存UI制約、使えるassetやicon libraryを確認する。
 2. `$imagegen` でUI mock screenshotを生成する。
-3. 生成画像を最終仕様にせず、Mock Breakdownとしてlayout、情報階層、asset、visual anchor、採用しない要素、代替禁止を棚卸しする。
+3. 生成画像を最終仕様にせず、Internal Extraction Pointsでlayout、情報階層、asset、visual anchor、採用しない要素、代替禁止を棚卸しする。
 4. Design Brief、Layout Contract、Asset Contract、Component Contract、Visual Acceptance Criteriaへ変換する。
 5. `screen-catalog.md` へ画面責務、主要状態、responsive expectations、visual check candidateを追加し、対象画面のscreen specへstable visual / layout expectations、forbidden changes、viewport coverage、screenshot baseline方針を追加する。
 

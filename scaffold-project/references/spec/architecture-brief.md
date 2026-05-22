@@ -1,6 +1,6 @@
 # Architecture Briefの作成手順
 
-`docs/project/architecture-brief.md` を作るときに使う。
+`docs/spec/architecture-brief.md` を作るときに使う。
 
 ## 目的
 

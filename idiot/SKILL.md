@@ -1,6 +1,6 @@
 ---
 name: idiot
-description: ユーザーが自然文で、既存の調査結果、実装計画、review結果、blocked理由、未確認事項、人間判断待ちを、次へ進むための少数の判断質問へ整理したいと頼んだ場合に使う。$idiot の明示でも使う。仕様決定、実装、レビュー判定、検証実行は行わない。単なる仕様相談、要件整理、実装依頼には使わない。
+description: ユーザーが自然文で、既存の調査結果、実装計画、review結果、blocked理由、未確認事項、人間判断待ちを、次へ進むための判断質問へ整理したいと頼んだ場合に使う。$idiot の明示でも使う。仕様決定、実装、レビュー判定、検証実行は行わない。単なる仕様相談、要件整理、実装依頼には使わない。
 ---
 
 # idiot
@@ -29,9 +29,9 @@ description: ユーザーが自然文で、既存の調査結果、実装計画�
 - `wf-explore` の作業コンテクスト
 - `wf-explore` の `prep_status: blocked` な計画
 - `wf-review` の `blocked` / `needs-specialist-review` 結果
-- チケット本文、作業メモ、review commentに残された人間判断待ち
+- チケット本文、作業コンテクスト、review commentに残された人間判断待ち
 
-入力が不足して何を質問すべきか判断できない場合は、質問を作らず `clarification_status: blocked` とし、不足している入力を列挙する。
+入力が不足して何を質問すべきか判断できない場合は、質問を作らず、不足している入力だけを短く列挙する。
 
 ## 手順
 
@@ -43,8 +43,8 @@ description: ユーザーが自然文で、既存の調査結果、実装計画�
    - 追加調査が必要な事実不足
    - 専門reviewやrepo内skillへroutingすべき事項
 4. 実行を止めている判断だけを質問化する。
-   - 質問は原則3〜5個以内に絞る。
-   - すべての未確認事項を質問にしない。
+   - 実装、計画、reviewを止めている判断は省略せず質問にする。
+   - 止めていない未確認事項は質問にしない。
    - 1つの質問で複数の実装条件やテスト期待値が決まるようにまとめる。
 5. 各質問に、選択肢、推奨初期値、保留時の扱いを付ける。
 6. 回答後に次workflowへ渡す情報を整理する。
@@ -53,12 +53,11 @@ description: ユーザーが自然文で、既存の調査結果、実装計画�
 
 各質問には次を含める。
 
-- `decision`: 何を決める質問か。
-- `why blocking`: なぜ次へ進めないか。
+- `question`: 人間が答える質問。1文を基本にする。
 - `options`: 人間が選べる選択肢。原則2〜4個に絞る。
 - `recommended default`: 既存実装、安全側、変更範囲の小ささ、ユーザー報告との整合のどれを根拠にした推奨初期値か。
-- `if deferred`: 保留した場合の扱い。実装不可、review不可、再調査、非対象化、条件付き計画など。
-- `updates`: 回答された場合に更新する確定事項、非対象範囲、計画入力、review routing。
+
+保留時の扱い、更新される確定事項、review routingは、質問の理解に必要な場合だけ1行で添える。全質問へ機械的に付けない。
 
 `recommended default` は人間の代わりに仕様決定するものではない。判断材料として示し、最終判断は人間へ戻す。
 
@@ -88,66 +87,37 @@ description: ユーザーが自然文で、既存の調査結果、実装計画�
 - `残る未確認事項`: まだ止めているものと、止めないがreviewで見るものを分ける。
 - `次workflowへ渡す入力`: `wf-explore`、`wf-review`、専門review、human decision など。
 
-未回答の質問は確定事項として扱いない。保留された場合は `if deferred` に従って戻り先を示す。
+未回答の質問は確定事項として扱わない。保留された場合は `if deferred` に従って戻り先を示す。
 
 ## 出力形式
 
-```md
-# Decision Clarification
+出力は質問を中心に短く返す。空の章、入力証跡の再掲、`なし / あり` のプレースホルダ、status packetは出さない。
 
-## Status
+```text
+Q1. <質問>
+A1.
+- <選択肢>
+- <選択肢>
+推奨: <推奨初期値と理由>
 
-clarification_status: ready_for_plan / ready_for_review / blocked
-
-## Source
-
-- input:
-- current status:
-- next workflow:
-
-## Blocking Decisions
-
-- decision:
-  why blocking:
-  options:
-    - option:
-      effect:
-  recommended default:
-  if deferred:
-  updates:
-
-## Non-blocking Risks
-
-- risk:
-  review note:
-
-## Confirmed Inputs
-
-- なし / あり
-
-## Remaining Unknowns
-
-- blocking:
-- non-blocking:
-
-## Next Step
-
-- wf-explore / wf-review / specialist review / human decision
+Q2. <質問>
+A2.
+- <選択肢>
+- <選択肢>
+推奨: <推奨初期値と理由>
 ```
+
+質問が0件の場合は「質問はありません。」だけを返す。入力不足で質問を作れない場合は「質問を作るには次が不足しています: ...」として、不足している入力を1〜3項目で返す。
 
 ## 禁止事項
 
 - 人間の代わりに仕様、security、privacy、release、risk acceptanceを確定しない。
 - 未回答の質問を確定事項として扱わない。
-- 質問を大量に並べて人間へ丸投げしない。
+- 実行を止めている判断を、省略して後続workflowへ曖昧なまま渡さない。
+- 止めていない補足リスクや調査メモを質問に混ぜない。
 - 実装、テスト更新、検証実行、review判定を始めない。
 - 元workflowの既定動作で処理できる事項を、人間判断待ちとして膨らませない。
 
 ## 完了報告
 
-最後に次を報告する。
-
-- `clarification_status`
-- 人間が答えるべき質問数
-- 次workflowへ渡す入力
-- 保留時の戻り先
+出力形式そのものを完了報告とする。質問リストの後に、同じ内容の要約を重ねない。

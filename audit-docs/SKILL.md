@@ -1,11 +1,13 @@
 ---
 name: audit-docs
-description: ユーザーが自然文で、README、AGENTS、PJ文書、検証手順、review条件、作業メモの矛盾、古い前提、未決事項、実装や検証手順との食い違いを点検したいと頼んだ場合に使う。$audit-docs の明示でも使う。実PJでは project_doc_auditor custom agentへ委譲する。人間判断が不要な文書修正はMain Agentが同じ作業内で対応し、判断が必要なものは戻り先と更新候補を整理する。
+description: ユーザーが自然文で、README、AGENTS、仕様根拠、作業契約、検証手順、review条件、作業コンテクストやstate fileの矛盾、古い前提、未決事項、実装や検証手順との食い違いを点検したい場合、または作業コンテクスト、state file、実装差分から docs/spec/ と docs/contract/ へバックポートしたい場合に使う。$audit-docs の明示でも使う。実PJでは project_doc_auditor custom agentへ委譲する。人間判断が不要な文書修正はMain Agentが同じ作業内で対応し、判断が必要なものは戻り先と更新候補を整理する。
 ---
 
 # audit-docs
 
-このskillは、PJ文書群が調査や実装計画の根拠資料として使える状態かを点検するaudit workflowである。矛盾、古い前提、未決事項、欠けている根拠、実装や検証手順との食い違いを見つける。人間判断が不要で、既存証跡から修正内容が一意に決まる文書問題はMain Agentが同じ作業内で修正し、判断が必要な問題は次に戻すworkflowを整理する。
+このskillは、仕様根拠と作業契約が調査や実装計画の根拠資料として使える状態かを点検し、作業コンテクスト、state file、実装差分から長期保存すべき内容を `docs/spec/` または `docs/contract/` へバックポートするaudit workflowである。矛盾、古い前提、未決事項、欠けている根拠、実装や検証手順との食い違いを見つける。人間判断が不要で、既存証跡から修正内容が一意に決まる文書問題はMain Agentが同じ作業内で修正し、判断が必要な問題は次に戻すworkflowを整理する。
+
+`docs/work/<task-id>.md` と `docs/work/<task-id>.state.json` は短命な作業コンテクストであり、原則として長期的な最新化対象ではなくバックポート元の入力として扱う。Markdownは人間が読む計画や判断、state fileは進捗、対象ファイル、関連ファイル、commands結果の入力である。`partial` / `blocked` で引き継ぎが必要な場合だけ、Markdownには現在状態、未完了作業、次の戻り先を追記し、state fileには進捗やcommands結果を反映してよい。
 
 ## 実行形態
 
@@ -20,8 +22,9 @@ description: ユーザーが自然文で、README、AGENTS、PJ文書、検証�
 
 - `scaffold-project` で作った文書群を、実装前の根拠として使えるか確認したい。
 - `wf-explore` で、文書不整合候補が見つかった。
-- バグ修正や仕様変更の前に、要件、設計、AGENTS、検証手順、review条件が食い違っていないか見たい。
-- README、PJ文書、AGENTS、検証docs、review docs、作業メモのどれを信じてよいか整理したい。
+- `wf-implement` 後に、作業コンテクスト、state file、実装差分、検証証跡、review結果から `docs/spec/` または `docs/contract/` へ残す内容を抽出したい。
+- バグ修正や仕様変更の前に、要件、architecture、AGENTS、検証手順、review条件が食い違っていないか見たい。
+- README、仕様根拠、作業契約、AGENTS、検証docs、review docs、作業コンテクストのどれを信じてよいか整理したい。
 - 長く更新されていない文書や、未決事項が放置されていないか確認したい。
 
 ## 使わない場面
@@ -37,13 +40,9 @@ audit目的に応じて、次のうち関係するものを確認する。すべ
 
 - `README.md`
 - `AGENTS.md`
-- `docs/project/pj-charter.md`
-- `docs/project/requirements-brief.md`
-- `docs/project/architecture-brief.md`
-- `docs/ai/ai-usage-note.md`
-- `docs/review/reviewable-gate.md`
-- `docs/verification/`
-- `docs/work/` の代表的な調査、計画、検証、review成果物
+- `docs/spec/`
+- `docs/contract/`
+- `docs/work/` の対象作業コンテクストMarkdownと、同じtask-idのstate file
 - repo固有のdocs
 - project manifest、CI workflow、主要設定、代表的な実装ファイル
 
@@ -54,15 +53,23 @@ audit目的に応じて、次のうち関係するものを確認する。すべ
 ### 文書間の整合
 
 - PJ目的、MVP、非対象範囲、成功条件が文書間で矛盾していないか。
-- requirements、architecture、reviewable gate、verification docs の前提が食い違っていないか。
-- AGENTSの作業ルールが、READMEやPJ文書と矛盾していないか。
+- `docs/spec/` の requirements、architecture、画面責務と、`docs/contract/` のreviewable gate、verification docs の前提が食い違っていないか。
+- AGENTSの作業ルールが、READMEや仕様根拠、作業契約と矛盾していないか。
 - 確定事項、仮説、未決事項が混ざっていないか。
+
+### バックポート分類
+
+- `backport-to-spec`: 仕様、要件、期待動作、architecture、画面責務、設計判断が変わった。
+- `backport-to-contract`: 検証コマンドのsource of truth、review条件、workflow、agent分担、安全境界、作業ルールが変わった。
+- `task-local`: その作業だけの調査、試行錯誤、変更計画、検証メモ、state fileの進捗やcommands結果であり、長期文書へ残さない。
+- `human-decision`: 仕様判断、scope変更、risk acceptance、security、privacy、release、本番操作の判断が必要。
 
 ### 文書と実装/検証手順の整合
 
 - 文書に書かれた技術構成、主要コマンド、検証手順がrepo内のmanifest、CI、script、実装と大きく食い違っていないか。
 - 仕様や業務ルールが、代表的な実装ファイルやテストから見える挙動と矛盾していないか。
 - review条件や検証手順が、現在のworkflowで実行できる粒度になっているか。
+- 作業コンテクストMarkdownとstate fileが矛盾していないか。state fileのcommands結果を、検証コマンドの長期的なsource of truthとして扱っていないか。
 
 ### 未決事項と根拠不足
 
@@ -79,21 +86,22 @@ audit目的に応じて、次のうち関係するものを確認する。すべ
 ## 手順
 
 1. audit目的と対象範囲を確認する。
-2. 関係する文書と、必要な実装/検証手順の代表ファイルを列挙する。
+2. 関係する仕様根拠、作業契約、作業コンテクストMarkdown、同じtask-idのstate file、必要な実装/検証手順の代表ファイルを列挙する。
 3. 文書ごとに、確定事項、仮説、未決事項、参照先、更新日の手がかりを確認する。
 4. Audit観点ごとにfindingを記録する。
-5. findingをseverity、根拠、影響、戻り先で分類する。
-6. findingを `auto-fixable` / `needs-workflow` / `human-decision` に分類する。
-7. `auto-fixable` はMain Agentが同じ作業内で修正し、修正内容を報告する。
-8. `needs-workflow` と `human-decision` は、次に実行すべきworkflowや人間判断を整理する。
-9. ユーザーが成果物保存を求めた場合だけ、PJ慣習に従ってaudit結果を保存する。
+5. 作業コンテクスト、state file、実装差分から抽出した内容を、`backport-to-spec` / `backport-to-contract` / `task-local` / `human-decision` に分類する。
+6. findingをseverity、根拠、影響、戻り先で分類する。
+7. findingを `auto-fixable` / `needs-workflow` / `human-decision` / `no-action` に分類する。
+8. `auto-fixable` はMain Agentが同じ作業内で修正し、修正内容を報告する。
+9. `needs-workflow` と `human-decision` は、次に実行すべきworkflowや人間判断を整理する。
+10. ユーザーが成果物保存を求めた場合だけ、PJ慣習に従ってaudit結果を保存する。
 
 ## 自動修正できる条件
 
 次をすべて満たすfindingは `auto-fixable` として扱う。
 
 - 既存文書、manifest、CI、script、代表的な実装/テストなどの証跡から正しい記述が判断できる。
-- 修正が表記、リンク、ファイル名、検証コマンド、古い参照、重複、文書間の明白な同期漏れに閉じる。
+- 修正が表記、リンク、ファイル名、検証コマンド、古い参照、重複、文書間の明白な同期漏れ、または作業コンテクストやstate fileから `docs/spec/` / `docs/contract/` へ一意に移せるバックポートに閉じる。
 - scope、仕様、非対象範囲、risk acceptance、security、privacy、release、本番操作の判断を含まない。
 - 破壊的操作、ファイル削除、大きな文書再構成を含まない。
 
@@ -117,65 +125,22 @@ audit目的に応じて、次のうち関係するものを確認する。すべ
 
 ## 出力形式
 
-`project_doc_auditor` は `fix action` まで返し、`Applied Fixes` は空でよいである。Main Agentは自動修正を適用した後、最終報告で `Applied Fixes` を埋める。
+`project_doc_auditor` は、修正候補の分類、根拠、`fix action` を返す。Main Agentは自動修正を適用した後、最終報告を固定テンプレートへ詰め直さず、修正差分の要約と見るべきポイントだけを自然文で返す。
 
-```md
-# Project Doc Consistency Audit
+保存用のaudit reportをユーザーが求めた場合だけ、目的に合う範囲で次を残す。
 
-## Status
+- audit対象と未確認範囲
+- finding、根拠、影響、戻り先
+- backport候補と適用結果
+- 人間判断が必要な点
+- 推奨更新順
 
-audit_status: pass / findings / blocked
-
-## Scope
-
-- audit purpose:
-- checked docs:
-- checked implementation / verification references:
-- not checked:
-- reason:
-
-## Findings
-
-- id:
-  severity: blocking / high / medium / low
-  category: doc-conflict / stale-assumption / missing-doc / unresolved-decision / implementation-mismatch / verification-mismatch / safety-boundary
-  docs:
-  evidence:
-  impact:
-  recommended next workflow:
-  human decision:
-  fix action: auto-fixable / needs-workflow / human-decision / no-action
-
-## Applied Fixes
-
-- finding id:
-  files:
-  summary:
-
-## Positive Checks
-
-- check:
-  evidence:
-
-## Open Questions
-
-- question:
-  why it matters:
-  next owner:
-
-## Suggested Update Order
-
-- step:
-  reason:
-
-## Next Step
-
-- no action / wf-explore / idiot / audit-repo-skill / migrate-workflow / human decision
-```
+保存しない場合、会話上では長いaudit reportを出さない。
 
 ## 禁止事項
 
 - `auto-fixable` と分類できない文書更新、実装修正、テスト更新、検証実行、review判定を始めない。
+- `docs/work/<task-id>.md` や `docs/work/<task-id>.state.json` を長期文書として最新化し続けない。未完了引き継ぎが必要な場合を除き、バックポート元として扱う。
 - 文書が正しいと仮定して、実装や検証手順との矛盾を無視しない。
 - 未決事項や仮説を確定事項として扱わない。
 - secrets、credential、本番ログの生データを出力へ複製しない。
@@ -185,13 +150,11 @@ audit_status: pass / findings / blocked
 
 ## 完了報告
 
-最後に次を報告する。
+最後は、修正差分を見る人に必要な情報だけを自然に返す。
 
-- `audit_status`
-- blocking / high findingの有無
-- 主な文書不整合、根拠不足、未決事項
-- 適用した自動修正
-- 残った人間判断または戻り先
-- 未確認範囲
-- 推奨更新順
-- 次の戻り先
+- 修正したファイルと、何を変えたか。
+- 人間がdiffで特に見るべきポイント。
+- 自動修正しなかったfinding、人間判断、戻り先。
+- 未確認範囲が結果解釈に影響する場合だけ、その範囲。
+
+修正がない場合は、主要finding、見るべき証跡、次の戻り先だけを短く返す。

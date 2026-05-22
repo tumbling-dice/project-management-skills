@@ -20,7 +20,7 @@ description: ユーザーが自然文で、repo内ドキュメントやAGENTS.md
 
 - 実際のプロダクト変更を進める場合。その場合は `wf-explore` から始める。
 - 単なるrepo-local skill / agentの静的点検だけをしたい場合。その場合は `audit-repo-skill` を使う。
-- PJ文書群の矛盾だけを点検したい場合。その場合は `audit-docs` を使う。
+- 仕様根拠や作業契約の矛盾だけを点検したい場合。その場合は `audit-docs` を使う。
 - repo固有の `test_runner` やreviewerを最初から作る依頼だけの場合。その場合は該当する `scaffold-*` skillを使う。
 
 ## 原則
@@ -46,9 +46,8 @@ description: ユーザーが自然文で、repo内ドキュメントやAGENTS.md
    - `AGENTS.md`
    - `.codex/skills/`
    - `.codex/agents/`
-   - `docs/ai/`
-   - `docs/review/`
-   - `docs/verification/`
+   - `docs/contract/`
+   - `docs/spec/`
    - `docs/work/`
    - repo固有のworkflow map
 4. `wf-explore` で使うprep scout、`wf-verify` で使う `test_runner`、`audit-docs` の `project_doc_auditor`、`wf-review` のreviewable gate実装、専門reviewer routingがあるか確認する。
@@ -68,9 +67,9 @@ description: ユーザーが自然文で、repo内ドキュメントやAGENTS.md
 1. 一時worktreeを作成する。
 2. 本体worktreeの未コミット差分をpatchとして一時worktreeへ適用する。
 3. 一時worktree内でだけ架空タスクの `wf-*` 検証を行う。
-4. 検証後、一時worktreeの差分要約、作業メモ、Workflow Trace、blocked理由、未実行検証証跡を回収する。
+4. 検証後、一時worktreeの差分要約、作業コンテクストMarkdown、state file、Workflow Trace、blocked理由、未実行検証証跡を回収する。
 5. `audit_status: pass` または `audit_status: findings-fixed` の場合、一時worktree内の架空差分は人間review対象ではない。差分要約とWorkflow Traceを回収したら、架空差分が残っていても一時worktreeを削除する。
-6. `audit_status: blocked` の場合だけ、未回収の差分、blocked原因の再現に必要な作業メモ、またはpatch適用失敗の調査材料が残っていれば、一時worktreeを削除せず path を報告してよい。
+6. `audit_status: blocked` の場合だけ、未回収の差分、blocked原因の再現に必要な作業コンテクスト、またはpatch適用失敗の調査材料が残っていれば、一時worktreeを削除せず path を報告してよい。
 7. cleanupに失敗した場合は、残ったworktree path、理由、手動削除可否を報告する。
 
 ## 実行主体
@@ -250,7 +249,7 @@ Done when:
 
 次を確認する。
 
-- `wf-explore` で調査、計画、作業コンテクスト、Decision Clarification が作られたか。
+- `wf-explore` で調査、計画、作業コンテクストMarkdown、state file、Decision Clarification が作られたか。
 - `workflow_audit_virtual_main` subagentが起動され、親Main Agentが `wf-*` 検証を直接実行していないか。
 - `Expected Subagent Coverage` が作られ、repo-localで定義された呼び出し候補subagentが漏れなく列挙されたか。
 - coverage taskが `Expected Subagent Coverage` の全subagentを呼ぶように設計されたか。
@@ -258,7 +257,7 @@ Done when:
 - 仮想承認が計画にだけ適用され、security、privacy、release、本番操作の判断を確定していないか。
 - `wf-implement` で docs / 実装 / test がすべて変更されたか。
 - formatter、linter、test、build、typecheck、E2Eを実行していないか。
-- `wf-verify` がrepo内 `test_runner` に委譲され、実コマンド未実行の証跡を返したか。
+- `wf-verify` がrepo内 `test_runner` に委譲され、実コマンド未実行の証跡とstate fileのcommandsへ反映できる結果を返したか。
 - `audit-docs` が `project_doc_auditor` に委譲されたか。
 - `wf-review` がrepo-local reviewable gate実装を使ったか。
 - specialist reviewerやrepo-local reviewerが複数ある場合に、すべてroutingされたか。
@@ -281,7 +280,7 @@ findingは次に分類する。
 
 `common-skill-blocked` は修正せず、対象skill名、該当箇所、完走を止めた理由、修正案を報告する。
 
-`human-decision` は `$idiot` へ渡せる形で、少数の判断質問へ整理する。
+`human-decision` は `$idiot` へ渡せる形で、判断質問へ整理する。
 
 ## 終了条件
 
@@ -297,60 +296,17 @@ findingは次に分類する。
 
 ## 出力形式
 
-```md
-# Workflow Audit Report
+固定のaudit reportテンプレートを会話上に出さない。ユーザーが見るべき主対象は、repo-localに適用された修正差分と、一時worktreeで観測された完走可否である。
 
-## Status
-audit_status: pass / findings-fixed / blocked
+保存用のaudit reportをユーザーが求めた場合だけ、目的に合う範囲で次を残す。
 
-## Scope
-- repo:
-- base ref:
-- included uncommitted changes: yes / no
-- scenario:
-
-## Iterations
-- iteration:
-  result:
-  findings:
-  repairs applied:
-  rerun reason:
-
-## Workflow Trace Summary
-- used skills:
-- subagents:
-- expected subagent coverage:
-- docs changed:
-- implementation changed:
-- tests changed:
-- verification commands not run:
-- gate results:
-
-## Applied Repo Fixes
-- file:
-  reason:
-  source workflow:
-
-## Common Skill Blockers
-- skill:
-  issue:
-  evidence:
-  suggested fix:
-
-## Human Decisions
-- decision:
-  why blocking:
-  options:
-  recommended default:
-
-## Cleanup
-- temp worktree:
-- cleanup result:
-- remaining path:
-
-## Next Step
-- human review / audit-workflow rerun / audit-repo-skill / scaffold-agent-test-runner / scaffold-agent-reviewer / scaffold-agent-prep-scout / common skill update / human decision
-```
+- scenario、反復回数、最終状態
+- Workflow Traceの要約
+- 呼び出されたsubagentとExpected Subagent Coverage
+- 適用したrepo-local修正
+- 共通skill側blockerと修正案
+- human decision
+- cleanup結果
 
 ## 禁止事項
 
@@ -370,17 +326,12 @@ audit_status: pass / findings-fixed / blocked
 
 ## 完了報告
 
-最後に次を報告する。
+最後は、修正差分と再実行判断に必要な情報だけを自然に返す。
 
-- `audit_status`
-- 検証した架空タスク
-- 未コミット差分を持ち込んだか
-- 実行した反復回数
-- 使用された `wf-*` skill と scaffold / audit 系skill
-- Expected Subagent Coverage、呼び出されたsubagent、未呼び出しsubagentの有無
-- docs / 実装 / test が変更された証跡
-- 実行しなかった検証コマンドと理由
-- 適用したrepo-local修正
-- 共通skill側のblockerと修正案
-- human decisionの有無
-- 一時worktree cleanup結果
+- 最終状態: `pass` / `findings-fixed` / `blocked`
+- 修正したrepo-localファイルと、何を変えたか。
+- 人間がdiffで特に見るべきポイント。
+- 呼び出せなかったsubagent、共通skill側blocker、human decision。
+- 一時worktreeを残した場合だけ、そのpathと理由。
+
+修正がない場合は、完走可否、残blocker、次の戻り先だけを短く返す。

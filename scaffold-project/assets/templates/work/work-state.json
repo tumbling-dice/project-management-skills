@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "task_id": "[task-id]",
+  "markdown": "docs/work/[task-id].md",
+  "workflow": "wf-explore",
+  "status": "draft",
+  "progress": {
+    "explore": "not_started",
+    "pre_review": "not_started",
+    "human_approval": "pending",
+    "implement": "not_started",
+    "verify": "not_started",
+    "review": "not_started"
+  },
+  "target_files": [],
+  "related_files": [],
+  "commands": [
+    {
+      "cmd": "",
+      "purpose": "",
+      "status": "planned",
+      "result": ""
+    }
+  ],
+  "last_updated": "YYYY-MM-DD"
+}

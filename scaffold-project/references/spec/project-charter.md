@@ -1,6 +1,6 @@
 # PJ Charterの作成手順
 
-`docs/project/pj-charter.md` を作るときに使う。
+`docs/spec/pj-charter.md` を作るときに使う。
 
 ## 目的
 

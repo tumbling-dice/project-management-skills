@@ -15,6 +15,7 @@ description: ユーザーが自然文で、repo内に検証専用の test_runner
 
 - repo固有の `test_runner` custom agent
 - `test_runner` が読むrepo内verification skillまたは検証手順文書
+- taskごとの `docs/work/<task-id>.state.json` の `commands` を入力にできる接続
 - `$wf-verify` から `test_runner` へ委譲できる入力契約と戻り値
 - `subagent-orchestration` に従った、Main Agent から `test_runner` への委譲形式
 - 検証失敗、権限不足、環境不備、flaky疑いの戻り先
@@ -40,7 +41,7 @@ description: ユーザーが自然文で、repo内に検証専用の test_runner
 - Main Agent からの委譲は `subagent-orchestration` に従う。
 - `$wf-verify` からの委譲を主な入口として扱い、作成物にはその接続方法を明記する。
 - `test_runner` の実行規約は `subagent-execution` に従う。
-- 具体的な検証コマンドはrepo内skillまたはrepo内文書をsource of truthにする。
+- 具体的な検証コマンドのsource of truthはrepo内skillまたはrepo内文書に置く。taskごとの実行予定と結果は、state fileの `commands` に記録できる形にする。
 - `test_runner` は委譲されたverificationだけを実行する。
 - `test_runner` はrepo-tracked fileを編集しない。
 - テスト実行でcache、build output、log、screenshotなどが出る可能性があるため、sandboxは原則 `workspace-write` を検討する。
@@ -84,7 +85,7 @@ repoの慣習に従う。慣習がなければ次を推奨する。
 
 - `.codex/agents/test_runner.toml`
 - `.codex/skills/<repo-or-purpose>-wf-verify/SKILL.md`
-- `docs/verification/commands.md`
+- `docs/contract/verification-commands.md`
 
 repo内verification skillと検証文書の両方を作る場合は、重複を避ける。通常は、agentが読む詳細手順をrepo内skillに置き、人間向けの一覧や運用メモをdocsへ置きる。
 
@@ -101,6 +102,7 @@ repo内verification skillと検証文書の両方を作る場合は、重複を�
 - snapshot更新、golden更新、fixture再生成、依存関係更新、migration、deployは実行しない。ただし委譲文とrepo手順で明示承認されている場合を除く。
 - 権限昇格が必要な検証は、repo内手順に従って理由つきで扱う。
 - 実行したコマンド、終了状態、重要ログ、artifact、未実行理由を報告する。
+- state fileの `commands.status` / `commands.result` へ反映できる形で結果を返す。
 - 結果状態は `subagent-execution` に従い、`done` または `blocked` として扱う。
 - `$wf-verify` のDelegation Packetを受け取り、検証証跡へ統合できる形式で返すこと。
 
@@ -123,6 +125,7 @@ repo内verification skillには、次を含める。
 - retryしてはいけない条件
 - 実行禁止または人間承認が必要な操作
 - `$wf-verify` からのDelegation Packetを受け取る条件
+- state fileの `commands` から渡されたcommandを扱う条件
 - `wf-review` へ渡す検証証跡形式
 - 検証結果として返すrepo固有の報告項目
 
@@ -169,7 +172,7 @@ fork_context: false
 ## Deliver
 
 - `Status: done` または `Status: blocked` で始める。
-- 実行したcommand、result、duration、重要ログ、artifact、warning、未実行理由を返す。
+- 実行したcommand、result、duration、重要ログ、artifact、warning、未実行理由、state fileへ反映するstatus/resultを返す。
 
 ## Done when
 

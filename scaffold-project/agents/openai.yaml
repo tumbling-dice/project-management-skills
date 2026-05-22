@@ -1,7 +1,7 @@
 interface:
   display_name: "scaffold-project"
-  short_description: "AI利用開始に必要なPJ初期文書を作る"
-  default_prompt: "$scaffold-project を使って、このrepoでAI利用を始めるための初期文書を作ってください。"
+  short_description: "AI利用開始に必要な仕様根拠と作業契約を作る"
+  default_prompt: "$scaffold-project を使って、このrepoでAI利用を始めるための仕様根拠、作業契約、短命な作業コンテクスト雛形を作ってください。"
 
 policy:
   allow_implicit_invocation: true

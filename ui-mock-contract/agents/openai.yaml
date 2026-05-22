@@ -1,0 +1,7 @@
+interface:
+  display_name: "ui-mock-contract"
+  short_description: "画像モックでUI文書を補強する"
+  default_prompt: "$ui-mock-contract を使って、UIの目的から画像モックを生成し、そのモックからDesign Brief、Layout Contract、Asset Contract、Component Contract、Visual Acceptance Criteriaを抽出してscreen-catalog.mdや対象画面のscreen specを補強してください。"
+
+policy:
+  allow_implicit_invocation: true

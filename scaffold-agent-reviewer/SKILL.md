@@ -1,6 +1,6 @@
 ---
 name: scaffold-agent-reviewer
-description: ユーザーが自然文で、repo固有の専門reviewer、reviewable gate実装、専門review routing、review用skillやagent定義を作りたいと頼んだ場合に使う。$scaffold-agent-reviewer の明示でも使う。repo構成、既存AGENTS.md、.codex/skills、.codex/agents、リスク領域を調査し、責務・リスク・入力証跡ベースでreviewable gate実装、専門reviewer候補、routing文書、repo内skill、custom agent定義を提案または作成する。差分そのもののreviewには使わない。
+description: ユーザーが自然文で、repo固有の専門reviewer、pre-implementation review routing、reviewable gate実装、専門review routing、review用skillやagent定義を作りたいと頼んだ場合に使う。$scaffold-agent-reviewer の明示でも使う。repo構成、既存AGENTS.md、.codex/skills、.codex/agents、リスク領域を調査し、責務・リスク・入力証跡ベースでpre-implementation review、reviewable gate実装、専門reviewer候補、routing文書、repo内skill、custom agent定義を提案または作成する。差分そのもののreviewには使わない。
 ---
 
 # scaffold-agent-reviewer
@@ -9,10 +9,11 @@ description: ユーザーが自然文で、repo固有の専門reviewer、reviewa
 
 ## 目的
 
-`wf-review` は、差分がレビュー可能か、どの専門reviewが必要かを判定する入口である。実PJではMain Agentが証跡なしに直接判定せず、repo-local supplementで定義されたreviewable gate実装を使う。このskillは、そのgate実装と、判定先となるrepo固有の専門reviewerを作るために使う。
+`wf-explore` は、実装前計画に対して pre-implementation review を常に行い、Main Agent が影響範囲から委譲先reviewerを選ぶ。`wf-review` は、差分がレビュー可能か、どの専門reviewが必要かを判定する入口である。実PJではMain Agentが証跡なしに直接判定せず、repo-local supplementで定義されたreviewer routingやreviewable gate実装を使う。このskillは、そのrouting、gate実装、判定先となるrepo固有の専門reviewerを作るために使う。
 
 ## 使う場面
 
+- `wf-explore` の pre-implementation review で、影響範囲から委譲する専門reviewer routingを用意したい。
 - `wf-review` を実行するrepo-local custom agent、または専門reviewer結果とgate文書を照合するgate summary方式を用意したい。
 - `wf-review` から呼び出す専門reviewerをrepo内に用意したい。
 - 実装者と同じ文脈で判断するとバイアスが出やすい領域を独立reviewerにしたい。
@@ -32,6 +33,7 @@ description: ユーザーが自然文で、repo固有の専門reviewer、reviewa
 - 分類軸は、技術名ではなく責務、リスク、証跡で切る。
 - custom agentは必要な場合だけ作る。bias分離が不要ならrepo内skillだけでよい。
 - reviewable gate本体は証跡と入口条件を見る。repo-local reviewable gate実装がこれを担当する。専門reviewerは深い領域判断を見る。
+- pre-implementation reviewでは、専門reviewerは確定前の計画メモに対する実装時の注意点、後続review観点、計画上の懸念、今回の非対象範囲を返す。修正命令や実装可否の単独承認にはしない。
 - 作成する専門reviewerは、`$wf-review` から渡される証跡を受け取り、gate互換の判定を返せるようにする。
 - 専門reviewerは検証証跡を判断する。検証コマンドの実行や証跡生成は担当しない。
 - 検証専用agentが必要な場合は `$scaffold-agent-test-runner` を使い、このskillでreviewerとして作らない。
@@ -43,7 +45,7 @@ description: ユーザーが自然文で、repo固有の専門reviewer、reviewa
    - `.codex/config.toml`
    - `.codex/skills/*/SKILL.md`
    - `.codex/agents/*`
-   - `docs/review/` または同等のreview文書
+   - `docs/contract/` または同等のreview文書
 2. repoの主要な変更領域を把握する。
    - UI / user flow
    - API / service / domain logic
@@ -55,7 +57,7 @@ description: ユーザーが自然文で、repo固有の専門reviewer、reviewa
 3. 既存reviewerやskillで足りる領域を特定する。
 4. bias分離が必要な領域を特定する。
 5. repo内skillで十分なものと、custom agentが必要なものを分ける。
-6. `wf-review` を実行するrepo-local gate実装と、そこから呼び出しやすい専門review routingを作る。
+6. `wf-explore` の pre-implementation review と `wf-review` のreviewable gateから呼び出しやすい専門review routingを作る。
 
 ## Reviewer設計単位
 
@@ -69,6 +71,7 @@ description: ユーザーが自然文で、repo固有の専門reviewer、reviewa
 - `does_not_do`: 何を判断しないか
 - `output`: finding、blocking / non-blocking、人間判断が必要な点
 - `handoff`: NG時の戻り先
+- `pre_implementation_review_compatibility`: `$wf-explore` の計画メモをどう受け取り、実装時の注意点、後続review観点、計画上の懸念、非対象範囲をどう返すか
 - `reviewable_gate_compatibility`: `$wf-review` の入力証跡をどう受け取り、どのgate互換出力を返すか
 
 ## custom agentを作る基準
@@ -92,10 +95,10 @@ repoの慣習に従う。慣習がなければ次を推奨する。
 - `.codex/skills/<reviewer-name>/SKILL.md`
 - `.codex/agents/reviewable_gate_reviewer.toml` またはrepo慣習に沿った同等のreviewable gate agent定義
 - `.codex/agents/<reviewer-name>.toml`
-- `docs/review/specialist-review-routing.md`
-- `docs/review/reviewable-gate.md` またはrepo慣習に沿ったgate summary手順
+- `docs/contract/specialist-review-routing.md`
+- `docs/contract/reviewable-gate.md` またはrepo慣習に沿ったgate summary手順
 
-`docs/review/specialist-review-routing.md` は任意である。既にreview routingが `AGENTS.md` や別文書にある場合は、そこへ最小追記する。
+`docs/contract/specialist-review-routing.md` は任意である。既にreview routingが `AGENTS.md` や別文書にある場合は、そこへ最小追記する。
 
 ## repo内skillの内容
 
@@ -104,9 +107,11 @@ repo内review skillには、次を含める。
 - このrepoでの責務
 - 呼び出す条件
 - 入力として必要な証跡
+- pre-implementation reviewで返す実装時の注意点、後続review観点、計画上の懸念、非対象範囲
 - blocking findingの条件
 - non-blocking findingの条件
 - 判断しないこと
+- `wf-explore` の計画メモへ返す要約形式
 - `wf-review` へ返す要約形式
 - gate互換の入力と出力
 
@@ -117,6 +122,7 @@ gate互換の入力は、少なくとも次を受け取れる形にする。
 - 承認済み計画、または人間が承認した変更範囲
 - diffまたはpatch
 - 変更ファイル一覧
+- 承認済み計画と同じtask-idのstate fileがある場合は、対象ファイル、関連ファイル、commands結果
 - 追加または更新したテスト
 - 実行した検証コマンドと結果
 - 未実行検証の理由とリスク
@@ -137,6 +143,7 @@ gate互換の出力は、少なくとも次を含める。
 custom agent定義には、次を含める。
 
 - reviewable gate用agentを作る場合は、`$wf-review` をgoverning workflowとして使うこと
+- pre-implementation reviewerとして呼ばれる場合は、`$wf-explore` の計画メモを入力とし、実装前の専門助言だけを返すこと
 - reviewable gate用agentは、Main Agentや実装者の長い会話履歴を前提にせず、承認済み計画、diff、変更ファイル、テスト、検証証跡、非対象範囲、risk notesだけで判定すること
 - read-onlyを基本にすること
 - 親や実装者の長い会話履歴を前提にしないこと
@@ -155,8 +162,10 @@ agent定義の形式はrepoの既存 `.codex/agents` に合わせる。既存形
 routing文書またはAGENTS.md追記には、次を含める。
 
 - `wf-review` が入口であること
+- `wf-explore` では pre-implementation review を常に行い、Main Agentが影響範囲から委譲先reviewerを選ぶこと
 - 実PJでは、Main Agentが証跡なしに `wf-review` を直接判定せず、repo-local reviewable gate実装を使うこと
 - gate実装がcustom agent委譲か、専門reviewer結果とgate文書の照合で作るgate summaryかを明記すること
+- pre-implementation reviewで各専門reviewerへ渡す計画メモの入力証跡
 - Gateで専門reviewが必要と判定された場合の呼び出し先
 - 各専門reviewerのtrigger
 - 渡す入力証跡
@@ -193,6 +202,6 @@ routing文書またはAGENTS.md追記には、次を含める。
 - 調査した既存指示やreviewer
 - 作成または更新したファイル
 - 追加したreviewerの責務
-- `wf-review` からのrouting方法
+- `wf-explore` の pre-implementation review と `wf-review` からのrouting方法
 - custom agentを作った理由、または作らなかった理由
 - 人間が判断する点

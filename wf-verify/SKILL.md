@@ -5,17 +5,15 @@ description: ユーザーが $wf-verify を明示した場合だけ使う。実P
 
 # wf-verify
 
-このskillは、実装後の検証を計画どおりに実行または委譲し、`wf-review` に渡せる証跡へ整理するための共通ワークフローである。具体的な検証コマンドはrepo内の手順、script、CI、または承認済み計画をsource of truthにする。
+このskillは、実装後の検証を計画どおりに実行または委譲し、`wf-review` に渡せる証跡へ整理するための共通ワークフローである。具体的な検証コマンドのsource of truthはrepo内の手順、script、CIである。タスクごとの実行予定や実行結果は、承認済み計画と同じ `task-id` のstate fileがある場合は `commands` も入力にする。
+
+このskillは、`$scaffold-agent-test-runner` で整備された repo-local `test_runner`、verification skill、検証手順、委譲契約を使う。`test_runner` のagent定義、Delegation Packet、repo固有コマンド分類、権限、artifact、timeoutの詳細はこのskillへ複製しない。
 
 ## 実行形態
 
-実PJでは、Main Agentがこのskillを直接実行してはいけない。必ずrepo内にscaffoldされた `test_runner` custom agentへ委譲して実行する。formatterやformat checkは、repo手順でMain Agent担当とされている場合だけこのworkflowの外側で実行する。
+実PJでは、Main Agentがこのskillを直接実行してはいけない。必ずrepo内にscaffoldされた `test_runner` custom agentへ委譲する。formatterやformat checkは、repo手順でMain Agent担当とされている場合だけこのworkflowの外側で実行し、その結果を入力証跡として渡す。
 
-- Main Agentがこのskillを読んだ場合は、自分で検証範囲決定や検証コマンド実行をせず、承認済み計画、差分、変更ファイル、追加/更新テスト、repo固有検証手順、非対象範囲を短くまとめてrepo内 `test_runner` へ渡す。
-- formatterやformat checkをMain Agentが実行済みの場合は、その結果を入力証跡として渡す。`test_runner` へ同じformat確認を重複委譲するかはrepo手順に従う。
-- repo内 `test_runner` custom agentが使えない場合は、`verification_status: blocked` とし、`$scaffold-agent-test-runner` へ戻す。
-- 実PJでは、同一Main Agentによる代替verificationを行わない。代替verificationは、このskill自体の開発・検証で明示された場合だけ行う。
-- `test_runner` は、repo内検証手順に従って検証範囲、コマンド実行、結果分類、戻り先整理、証跡作成を担当する。
+repo内 `test_runner` またはverification手順が使えない場合は、Main Agentが代替実行せず `verification_status: blocked` とし、`$scaffold-agent-test-runner` へ戻す。
 
 ## 目的
 
@@ -23,9 +21,7 @@ description: ユーザーが $wf-verify を明示した場合だけ使う。実P
 
 このskillは次を担当する。
 
-- 承認済み計画と差分から、必要な検証範囲を確認する。
-- repo固有の検証手順から、実行するコマンドを確定する。
-- repo内 `test_runner` が、`subagent-orchestration` に従って検証を実行する。
+- 承認済み計画、差分、変更ファイル、追加または更新したテスト、非対象範囲を `test_runner` へ渡せる入力にまとめる。
 - 検証結果、artifact、warning、未実行理由を証跡として整理する。
 - 失敗や未実行がある場合に、次の戻り先を決める。
 
@@ -51,7 +47,6 @@ description: ユーザーが $wf-verify を明示した場合だけ使う。実P
 - 検証コマンドを共通skillへ固定しない。
 - 検証workflowは repo内 `test_runner` への委譲を必須とする。
 - formatterやformat checkは、repo手順でMain Agent担当とされている場合だけ例外としてこのworkflow外の入力証跡にする。
-- `test_runner` への委譲は `subagent-orchestration` に従う。
 - repo内 `test_runner` が未整備の場合は、Main Agentが代替実行せず、`verification_status: blocked` として `$scaffold-agent-test-runner` へ戻す。
 - 検証失敗をこのskillで修正しない。
 - snapshot更新、golden更新、fixture再生成、依存関係更新、migration、deploy、外部service操作は、検証として暗黙実行しない。
@@ -61,21 +56,22 @@ description: ユーザーが $wf-verify を明示した場合だけ使う。実P
 最低限、次を確認する。
 
 - 承認済み実装計画、または人間が承認した変更範囲
+- 承認済み計画と同じ `task-id` の `docs/work/<task-id>.state.json` があれば、その `commands`
 - git diff
 - 変更ファイル一覧
 - 追加または更新したテスト
-- 計画された検証コマンド
+- 計画された検証コマンドまたはstate fileの `commands`
 - repo固有の検証手順、CI、script、既存の開発用コマンド
 - 非対象範囲
 - 権限、secret、外部service、dev server、localhost、artifactに関する注意点
 
 入力が不足して検証範囲を決められない場合は、検証を推測で広げず `verification_status: blocked` として不足物を列挙する。
 
-削除済みファイル、過去のdiff内にだけ見える計画、会話内で承認済みだと確認できない古い計画は、現行の承認済み入力として扱いない。参考観測として記録してもかまわないが、それだけを根拠に検証範囲を確定しない。
+削除済みファイル、過去のdiff内にだけ見える計画、会話内で承認済みだと確認できない古い計画は、現行の承認済み入力として扱わない。参考観測として記録してもかまわないが、それだけを根拠に検証範囲を確定しない。
 
 ## 出力先
 
-ユーザーが「検証証跡を作る」「wf-review に渡す」「作業メモへ残す」と依頼している場合は、検証証跡のファイル作成または更新を優先する。ユーザーが会話上の提示だけを求めた場合だけ、ファイルを作らずに本文へ出力する。
+ユーザーが「検証証跡を作る」「wf-review に渡す」「作業コンテクストへ残す」と依頼している場合は、検証証跡のファイル作成または更新を優先する。ユーザーが会話上の提示だけを求めた場合だけ、ファイルを作らずに本文へ出力する。
 
 出力先はPJの慣習に従う。慣習がなければ、共有する検証証跡として `docs/work/<task-id>-verification.md` を推奨する。入力が `docs/work/<task-id>-implementation-plan.md` の実装計画なら、同じ `task-id` を使って検証証跡だと分かる名前にする。
 
@@ -85,46 +81,13 @@ description: ユーザーが $wf-verify を明示した場合だけ使う。実P
 
 ## 手順
 
-1. 承認済み計画と差分を照合する。
-   - 変更が計画範囲に収まっているか
-   - テスト追加や更新が計画と対応しているか
-   - 非対象範囲へ踏み込んでいないか
-2. repo固有の検証手順を確認する。
-   - `.codex/skills/*verification*/SKILL.md`
-   - `docs/verification/`
-   - CI workflow
-   - project manifest
-   - build / test / lint / typecheck / E2E / visual確認の設定
-3. 検証コマンドを分類する。
-   - Main Agentが実行済みまたは実行予定のformatter / format check
-   - 今回必須の検証
-   - 追加で推奨する検証
-   - 時間や環境により任意の検証
-   - 権限昇格、人間承認、外部service、secretが必要な検証
-   - 実行してはいけない操作
-4. 実行方法を決める。
-   - repo内 `test_runner` がある場合は、必ず委譲する。
-   - Main Agent担当のformatter / format checkは入力証跡として扱い、test、lint、build、typecheck、E2E、visual確認と混ぜない。
-   - `test_runner` がない場合は、Main Agentが直接実行せず、`$scaffold-agent-test-runner` を提案して `blocked` にする。
-5. 検証workflowを `test_runner` へ委譲する。
-6. 結果、ログ要約、artifact、warning、未実行理由をまとめる。
-7. 失敗や未実行を分類し、次の戻り先を決める。
-8. `wf-review` へ渡せる証跡を出力する。
-
-## `test_runner` への委譲
-
-repo内に `.codex/agents/test_runner.toml` がある場合は、`subagent-orchestration` の Delegation Packet を使う。委譲文には、最低限次を含める。
-
-- `Agent`: `test_runner`
-- `fork_context`: 原則 `false`
-- `Scope`: 検証対象の差分、対象外、変更ファイル
-- `Goal`: 指定された検証を実行し、結果証跡を返す
-- `Do not`: 修正、テスト更新、snapshot更新、依存関係更新、migration、deploy、未指定検証の実行
-- `Evidence`: command、reason、timeout、expected success、known warning、artifact、必要なログ範囲、権限要否
-- `Deliver`: 実行結果、未実行理由、失敗分類、artifact、warning
-- `Done when`: 指定検証が完了する、または権限や環境不足で続行不能と判断できる
-
-`test_runner` の結果が `blocked` の場合、Main Agentは不足情報、権限、scope、環境前提を補えるか判断する。同じscopeを根拠なく二重委譲しない。
+1. 承認済み計画、差分、変更ファイル、追加または更新したテスト、非対象範囲、formatter証跡を確認する。
+2. repo-local verification手順と `test_runner` の入力契約を確認する。
+3. `test_runner` へ検証を委譲する。委譲文の形式、権限、timeout、artifact、禁止操作はrepo-local手順に従う。
+4. `test_runner` の結果、ログ要約、artifact、warning、未実行理由を検証証跡へまとめる。
+5. state fileがある場合は、`commands` のstatus/resultへ反映できる形で実行結果を整理する。
+6. 失敗や未実行を分類し、次の戻り先を決める。
+7. `wf-review` へ渡せる証跡を出力する。
 
 ## 検証結果の分類
 
@@ -165,54 +128,20 @@ repo内に `.codex/agents/test_runner.toml` がある場合は、`subagent-orche
 
 ## 出力形式
 
-```md
-# Verification Evidence
+実PJではrepo内 `test_runner` の応答が詳細証跡である。このskillの最終出力で、コマンドごとの詳細結果や入力証跡を再テンプレート化しない。
 
-## Status
+単独で会話上に返す場合は、要点だけを短く返す。
 
-verification_status: pass / fail / blocked / partial
-
-## Inputs
-
-- plan:
-- diff:
-- changed files:
-- tests:
-- repo verification source:
-- formatter evidence:
-
-## Required Verification
-
-- command:
-  reason:
-  executor: test_runner / not_run
-  expected:
-  result:
-  artifact:
-  notes:
-
-## Not Run
-
-- command:
-  reason:
-  risk:
-  next action:
-
-## Failures
-
-- command:
-  classification:
-  key log:
-  likely next owner:
-
-## Warnings
-
-- なし / あり
-
-## Next Step
-
-- wf-review / wf-implement / wf-explore / scaffold-agent-test-runner / human decision
+```text
+verification_status: pass | fail | blocked | partial
+executor: test_runner | not_available
+commands: <passed / failed / not_run counts or one-line summary>
+artifact: <path or none>
+blocking: <none or one-line summary>
+next: wf-review | wf-implement | wf-explore | scaffold-agent-test-runner | human
 ```
+
+失敗や未実行がある場合だけ、代表的な失敗分類、重要ログの短い要約、戻り先を添える。詳細ログや全コマンド結果は `test_runner` の応答やartifactを参照させる。
 
 ## 禁止事項
 
@@ -228,12 +157,4 @@ verification_status: pass / fail / blocked / partial
 
 ## 完了報告
 
-最後に次を報告する。
-
-- `verification_status`
-- 実行または委譲したコマンド
-- repo内 `test_runner` を使ったか
-- 通過、失敗、未実行、warning
-- artifactや重要ログ
-- 次の戻り先
-- `wf-review` へ渡せる証跡が揃っているか
+出力形式そのものを完了報告とする。`test_runner` の詳細結果、全コマンド一覧、入力証跡一覧を同じ返答で繰り返さない。

@@ -7,26 +7,34 @@ description: ユーザーが $wf-review を明示した場合だけ使う。実P
 
 このskillは、差分が人間レビューまたは専門reviewへ進める状態かを確認するための共通ワークフローである。実装者の意図ではなく、計画、差分、テスト、検証結果、未実行検証、非対象範囲などの証跡を見る。
 
+このskillは、`$scaffold-agent-reviewer` で整備された repo-local reviewable gate実装、専門reviewer、review routingを使う。reviewer設計、routing文書、gate summary方式の詳細はこのskillへ複製しない。
+
 ## 目的
 
 `wf-review` は、コード品質の専門reviewをすべて代替するものではない。役割は、レビュー可能条件を満たしているか、どの専門reviewerへ渡すべきか、どこへ戻すべきかを判定することである。
 
 ## 実行形態
 
-実PJでは、Main Agentがこのskillを根拠なしに直接判定してはいけない。repo-local supplementで定義されたreviewable gate実装を使う。
+実PJでは、Main Agentがこのskillを根拠なしに直接判定してはいけない。repo-local supplementで定義されたreviewable gate agent、またはgate summary方式へ証跡を渡す。
 
-- reviewable gate用custom agentが定義されているrepoでは、Main Agentが承認済み計画、git diff、変更ファイル一覧、追加/更新テスト、検証証跡、未実行検証、非対象範囲、risk notesを短くまとめてrepo内reviewable gate agentへ渡す。
-- repo-local supplementが、専門reviewer結果とreviewable gate文書の照合でgate summaryを作る方式を定義している場合は、その方式を使う。この場合も、入力証跡、専門review結果、gate文書のpass条件を明記し、実装者の説明だけで判定しない。
-- repo-local supplementにreviewable gate実装が定義されていない場合は、`status: blocked` とし、`$scaffold-agent-reviewer` へ戻す。
-- 実PJでは、同一Main Agentによる証跡なしの代替reviewable gateを行わない。代替reviewable gateは、このskill自体の開発・検証で明示された場合だけ行う。
-- 実装者の長い会話履歴や採用案を正当化する説明ではなく、証跡を入力にする。
-- 入力が不足している場合は推測でpassにせず、`blocked` または `needs-specialist-review` にする。
+repo-local supplementにreviewable gate実装がない場合は、`status: blocked` とし、`$scaffold-agent-reviewer` へ戻す。実装者の長い会話履歴や採用案を正当化する説明ではなく、承認済み計画、diff、検証証跡、専門review結果などの証跡を入力にする。
+
+## Agent Session Lifecycle
+
+reviewable gateの最終判定は、原則としてreview iterationごとに新しいreviewer sessionを使う。前回の実装説明や指摘対応の流れに引きずられず、現在の計画、diff、検証証跡、専門review結果だけで判定するためである。
+
+- 前回指摘の解消確認だけを同じ観点で行う場合は、前回reviewer sessionを再利用してよい。
+- specialist reviewerは、同一taskかつ同一専門領域であれば同じsessionを再利用してよい。再利用時は、前回finding、今回の修正要約、再確認してほしい観点を渡す。
+- reviewerへは実装者の長い会話履歴を渡さず、承認済み計画、diff、検証証跡、専門review結果、前回review結果、修正要約などの証跡に絞る。
+- reviewerが古いdiff、古い計画、古い検証結果に依存している疑いがある場合は、新しいsessionへ委譲する。
+- session再利用の有無は `入力証跡` または `Specialist review routing` に残す。
 
 ## 入力証跡
 
 最低限、次を確認する。
 
 - 承認済み実装計画、または人間が承認した変更範囲
+- 承認済み計画と同じ `task-id` の `docs/work/<task-id>.state.json` があれば、その対象ファイル、関連ファイル、commands結果
 - git diff
 - 変更ファイル一覧
 - 非対象範囲
@@ -42,6 +50,8 @@ description: ユーザーが $wf-review を明示した場合だけ使う。実P
 入力がない場合は、まず不足証跡を列挙する。差分や検証結果がない状態で `pass` にしない。
 
 ユーザーが明示した検証証跡、計画、スクリーンショット、ログ要約は、git管理外やuntrackedであっても入力証跡として読んでかまわない。その場合は `入力証跡` に「明示指定された外部/未追跡証跡」として記録する。ただし、git diffに含まれない証跡は変更ファイル一覧とは分けて扱い、差分そのものの根拠として混ぜない。
+
+state fileは進捗、対象ファイル、関連ファイル、commands結果を確認する補助証跡であり、承認済み計画や人間承認のauthorityではない。Markdownの承認済み計画や検証証跡とstate fileが矛盾する場合は、`blocked` として戻り先を示す。
 
 ## 出力先
 
@@ -63,21 +73,16 @@ description: ユーザーが $wf-review を明示した場合だけ使う。実P
 
 `needs-specialist-review` では、共通gate上の実装修正、追加検証、再計画、再調査を要する問題がなければ `Blocking issues` は `なし` とする。専門review未完了であることは `Specialist review routing` と `Non-blocking issues` に分けて書き、`blocked` と混同しない。
 
-## Gate項目
+## Gate観点
 
-次を確認する。
+repo-local gate実装が確認する観点は、`$scaffold-agent-reviewer` で整備されたreview routingとgate条件に従う。共通workflowとしては、少なくとも次の証跡が揃っているかを確認する。
 
-- 計画との対応: 差分が承認済み計画や変更範囲に対応している。
-- 非対象範囲: 非対象範囲へ踏み込んでいない。
-- テスト対応: 変更内容に対応するテストがある。ない場合は理由が記録されている。
-- テスト弱体化なし: テスト削除、skip、assertion緩和、snapshot大量更新で通していない。
-- ドキュメント根拠: 調査または計画で参照した仕様、設計、検証手順、review条件、AI利用ルールなどが根拠として記録されている。差分がその根拠と矛盾していない。
-- 検証結果: 関連テスト、build、lint、typecheck、E2E、smoke testなど、計画された検証の結果が記録されている。
-- 未実行検証: 未実行の理由とリスクが明記されている。
-- 専門review結果: repo-local supplementで必須とされた専門reviewerのblocking issueが解消済み、または未実行理由と戻り先が明記されている。
-- gate実装との対応: repo-local supplementが定めるreviewable gate agentまたはgate summary方式のpass条件と照合している。
-- 権限 / privacy / secret / ログ: 影響有無が確認されている。未確認なら安全扱いしない。
-- 専門review要否: repo固有の専門reviewerへ渡す必要があるか判定している。
+- 承認済み計画との対応、非対象範囲、変更ファイル
+- テスト追加または更新、テスト弱体化の有無
+- 計画時のドキュメント根拠と、差分との矛盾有無
+- 検証結果、未実行検証の理由とリスク
+- 必須専門reviewerの結果または未実行理由
+- 権限、privacy、secret、ログ、外部入力などのrisk notes
 
 ## 共通skillが判断しないこと
 
@@ -92,33 +97,11 @@ description: ユーザーが $wf-review を明示した場合だけ使う。実P
 
 ## Specialist review routing
 
-repo内に専門review skillやcustom agentがある場合は、それを優先する。なければ、必要なreviewerの責務と入力証跡を提案する。repo固有reviewerの作成には `$scaffold-agent-reviewer` を使う。
-
-routingは技術名ではなく、責務とリスクで表現する。
-
-- user-visible behavior / UI evidence
-- data boundary / permission / privacy
-- service behavior / business rule
-- persistence / data compatibility
-- external input / import / export
-- build / deploy / config / observability
-- test integrity / E2E / visual evidence
+専門reviewerの選定はrepo-local review routingに従う。routingが未整備、または必要なreviewerが存在しない場合は、必要な責務と入力証跡を記録し、`$scaffold-agent-reviewer` へ戻す。
 
 ## NG時の戻り先
 
-NG理由に応じて戻り先を明記する。
-
-- 検証未実行: `wf-verify`
-- 実装ミス候補: `wf-implement`
-- テスト不足、テスト方針不足: `wf-explore`
-- ドキュメント根拠不足または文書不整合: `wf-explore`
-- テスト削除、skip、assertion弱体化、snapshot大量更新で通している場合: `wf-implement`
-- 調査不足、影響範囲漏れ: `wf-explore`
-- 非対象範囲変更、security、privacy、release判断: human decision または specialist review
-
-戻り先が複数ある場合は、blocking issueごとに分けて書く。
-
-非対象範囲違反でも、差分を戻す、テストを復元する、計画範囲内へ修正し直すことで解消できる場合は、まず `wf-implement` へ戻す。人間判断やspecialist reviewへ回すのは、非対象範囲を正式に拡張するか、security、privacy、release、complianceのrisk acceptanceが必要な場合である。
+NG理由に応じて戻り先を明記する。検証証跡不足は `wf-verify`、計画範囲内の実装修正は `wf-implement`、計画・文書根拠・影響範囲の不足は `wf-explore`、reviewer未整備は `$scaffold-agent-reviewer`、risk acceptanceやscope拡張は human decision へ戻す。戻り先が複数ある場合は、blocking issueごとに分けて書く。
 
 ## Decision Clarificationへの接続
 
@@ -133,67 +116,20 @@ NG理由に応じて戻り先を明記する。
 
 ## 出力形式
 
-```md
-# Reviewable Gate Review
+実PJではrepo-local reviewable gate実装や専門reviewerの応答が詳細証跡である。このskillの最終出力で、gate項目や入力証跡を再テンプレート化しない。
 
-## 判定
+単独で会話上に返す場合は、要点だけを短く返す。
 
-status: pass / needs-specialist-review / blocked
-
-## 入力証跡
-
-- plan:
-- diff:
-- changed files:
-- tests:
-- documentation evidence:
-- verification:
-- non-goals:
-- risk notes:
-
-## Gate項目
-
-- 計画との対応:
-- 非対象範囲:
-- テスト対応:
-- テスト弱体化なし:
-- ドキュメント根拠:
-- 検証結果:
-- 未実行検証:
-- 専門review結果:
-- gate実装との対応:
-- 権限 / privacy / secret / ログ:
-- 専門review要否:
-
-## Specialist review routing
-
-- reviewer:
-- trigger:
-- inputs:
-- reason:
-
-## Blocking issues
-
-- なし / あり
-
-## Non-blocking issues
-
-- なし / あり
-
-## 人間判断が必要な点
-
-- なし / あり
-
-## Decision Clarification
-
-- なし / あり
-- next workflow:
-- blocking decisions:
-
-## 次の戻り先
-
-- wf-verify / wf-implement / wf-explore / idiot / specialist review / human decision
+```text
+status: pass | needs-specialist-review | blocked
+review source: <repo-local gate agent / gate summary / specialist reviewer>
+blocking: <none or one-line summary>
+specialist review: <required / not required / completed>
+missing evidence: <none or one-line summary>
+next: human review | specialist review | wf-verify | wf-implement | wf-explore | idiot | human
 ```
+
+必要な場合だけ、見るべきartifactやreviewer応答のpathを添える。blocking issueが複数ある場合は、戻り先ごとに短くまとめる。
 
 ## 禁止事項
 
@@ -208,12 +144,4 @@ status: pass / needs-specialist-review / blocked
 
 ## 完了報告
 
-最後に次を報告する。
-
-- status
-- blocking issueの有無
-- specialist reviewの要否
-- 不足している証跡
-- ドキュメント根拠不足や文書不整合の有無
-- 次の戻り先
-- 人間判断が必要な点と、`idiot` へ渡す必要の有無
+出力形式そのものを完了報告とする。呼び出し先agentの詳細結果、gate項目、入力証跡一覧を同じ返答で繰り返さない。

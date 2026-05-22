@@ -1,7 +1,7 @@
 interface:
   display_name: "wf-implement"
   short_description: "承認済み計画に沿って修正と再レビューを回す"
-  default_prompt: "$wf-implement を使って、承認済み実装計画に沿って修正、対応テスト、自己検証、wf-review 前の audit-docs 呼び出し、wf-review を行い、指摘があれば再修正、必要な文書同期、再レビューを繰り返してください。"
+  default_prompt: "$wf-implement を使って、承認済み実装計画に沿って修正、対応テスト、自己検証、wf-review 前の audit-docs 呼び出し、wf-review を行い、指摘があれば再修正、必要なバックポート、再レビューを繰り返してください。"
 
 policy:
   allow_implicit_invocation: false

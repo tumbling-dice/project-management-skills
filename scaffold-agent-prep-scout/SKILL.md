@@ -17,6 +17,7 @@ description: ユーザーが自然文で、repo内に wf-explore 用の read-onl
 - `wf-explore` から prep scout へ渡す Evidence、Deliver、Done when
 - repo-local subagent orchestration / execution supplement
 - `docs/work/_template.md` または同等templateへの prep scout evidence 記録欄
+- `docs/work/_template.state.json` がある場合のstate fileとの分担確認
 - scout未整備、起動不能、scope不一致の場合のfallbackとblocked条件
 
 ## 使う場面
@@ -60,8 +61,8 @@ description: ユーザーが自然文で、repo内に wf-explore 用の read-onl
    - `AGENTS.md`
    - `.codex/agents/*`
    - `.codex/skills/*/SKILL.md`
-   - `docs/ai/` またはrepo固有workflow map
-   - `docs/work/_template.md` または同等template
+   - `docs/contract/` またはrepo固有workflow map
+   - `docs/work/_template.md` と `docs/work/_template.state.json` または同等template
    - `docs/requirements/`、ADR、review、verification文書
 2. `wf-explore` のsource of truthを確認する。
    - 共通 `wf-explore`
@@ -99,10 +100,10 @@ repoの慣習に従う。慣習がなければ次を候補にする。
 - `.codex/agents/<planning-scout-name>.toml`
 - `.codex/skills/<repo>-subagent-orchestration/SKILL.md`
 - `.codex/skills/<repo>-subagent-execution/SKILL.md`
-- `docs/ai/workflow-map.md` への `wf-explore` supplement追記
+- `docs/contract/workflow-map.md` への `wf-explore` supplement追記
 - `docs/work/_template.md` への prep scout evidence欄
 
-既存のrepo-local orchestration / execution skillがある場合は、重複作成せず必要な追記に留める。既存templateがある場合は、それをsource of truthとして扱い、共通templateを複製しない。
+既存のrepo-local orchestration / execution skillがある場合は、重複作成せず必要な追記に留める。既存templateがある場合は、それをsource of truthとして扱い、共通templateを複製しない。prep scoutの事実、分類、未確認事項はMarkdownへ置き、state fileへ長い調査メモを入れない。
 
 ## custom agent定義の内容
 
@@ -142,7 +143,7 @@ workflow map、AGENTS.md、repo-local orchestration skillのいずれかに、�
 - Main Agentが採用したevidenceと採用しなかったevidence
 - scout未使用の場合の理由、Main Agentが補った確認、残る不足
 
-templateを更新しない場合でも、`wf-explore` の作業コンテクストに同等の項目を追加できるようrepo-local supplementへ書く。
+templateを更新しない場合でも、`wf-explore` の作業コンテクストに同等の項目を追加できるようrepo-local supplementへ書く。state fileは進捗、対象ファイル、関連ファイル、commandsに限定し、prep scoutの要約置き場にしない。
 
 ## Delegation Packetへの接続
 

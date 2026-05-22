@@ -32,9 +32,8 @@ description: ユーザーが自然文で、repo内の AGENTS.md、.codex/skills�
 - `.codex/config.toml`
 - `.codex/skills/*/SKILL.md`
 - `.codex/agents/*`
-- `docs/review/`
-- `docs/verification/`
-- `docs/work/` の代表的な成果物
+- `docs/contract/`
+- `docs/work/` の代表的なMarkdown成果物と、同じtask-idのstate file
 - CI workflow、project manifest、検証script
 
 すべてを深掘りする必要はない。audit目的に関係するファイルを優先し、対象外は記録する。
@@ -51,6 +50,7 @@ description: ユーザーが自然文で、repo内の AGENTS.md、.codex/skills�
 ### Workflow接続
 
 - `wf-explore`、`wf-implement`、`wf-verify`、`wf-review` への戻り先が明確か。
+- `docs/work/<task-id>.md` と `docs/work/<task-id>.state.json` の分担が、workflow間で矛盾していないか。
 - `idiot` へ渡す人間判断が整理されているか。
 - `wf-review-triage` や `handoff` が必要な場面がないか。
 - 共通workflowへの移行対応表が必要な場合、`migrate-workflow` へ戻すべきか。
@@ -64,6 +64,7 @@ description: ユーザーが自然文で、repo内の AGENTS.md、.codex/skills�
 ### 検証と権限
 
 - 検証コマンドのsource of truthが明確か。
+- taskごとの実行予定や結果をstate fileの `commands` に置き、長期的な検証コマンド一覧と混同していないか。
 - snapshot、golden、fixture再生成、依存関係更新、migration、deployが暗黙実行されないか。
 - sandbox権限、network、secret、外部service、GUI、localhost、artifact、timeoutの扱いが明記されているか。
 - 実行していない検証を実行済み扱いしない出力形式になっているか。
@@ -104,59 +105,15 @@ description: ユーザーが自然文で、repo内の AGENTS.md、.codex/skills�
 
 ## 出力形式
 
-```md
-# Repo Skill Audit
+固定のaudit reportテンプレートを会話上に出さない。ユーザーが見たいのは修正後のdiffであるため、最終出力は修正差分の要約と見るべきポイントへ寄せる。
 
-## Status
+保存用のaudit reportをユーザーが求めた場合だけ、目的に合う範囲で次を残す。
 
-audit_status: pass / findings / blocked
-
-## Scope
-
-- repo:
-- target files:
-- not checked:
-- reason:
-
-## Findings
-
-- id:
-  severity: blocking / high / medium / low
-  category: role-boundary / workflow-routing / distribution / verification / security / documentation
-  file:
-  summary:
-  evidence:
-  impact:
-  recommended fix:
-  next workflow:
-  fix action: auto-fixable / needs-workflow / human-decision / no-action
-
-## Applied Fixes
-
-- finding id:
-  files:
-  summary:
-
-## Positive Checks
-
-- check:
-  evidence:
-
-## Open Questions
-
-- question:
-  why it matters:
-  next owner:
-
-## Suggested Update Order
-
-- step:
-  reason:
-
-## Next Step
-
-- no action / skill update / agent update / AGENTS.md update / migrate-workflow / wf-verify / scaffold-agent-test-runner / scaffold-agent-reviewer / idiot / human decision
-```
+- audit対象と未確認範囲
+- finding、severity、根拠、影響、推奨修正
+- 適用した自動修正
+- 人間判断または別workflowへ戻す項目
+- 推奨更新順
 
 ## 禁止事項
 
@@ -169,12 +126,11 @@ audit_status: pass / findings / blocked
 
 ## 完了報告
 
-最後に次を報告する。
+最後は、修正差分を見る人に必要な情報だけを自然に返す。
 
-- `audit_status`
-- blocking / high findingの有無
-- 主要findingと推奨更新順
-- 適用した自動修正
-- 残った人間判断または戻り先
-- 未確認範囲
-- 次の戻り先
+- 修正したファイルと、何を変えたか。
+- 人間がdiffで特に見るべきポイント。
+- 自動修正しなかったfinding、人間判断、戻り先。
+- 未確認範囲が結果解釈に影響する場合だけ、その範囲。
+
+修正がない場合は、主要finding、見るべき証跡、次の戻り先だけを短く返す。

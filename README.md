@@ -43,23 +43,26 @@ Windows では symlink を使わず copy する。既存pathがある場合は�
 
 補助 / scaffold / audit 系 skill は、ユーザーが自然文で判断整理、成果物作成、点検そのものを直接頼んだ場合にも使える。
 
-- `idiot`: blocked理由、未確認事項、人間判断待ちを少数の判断質問へ整理する依頼
-- `scaffold-project`: AI利用開始の初期文書、AGENTS、作業メモ雛形、Reviewable Gateを作る依頼
-- `scaffold-agent-prep-scout`: `wf-explore` 用のread-only prep scout、repo-local supplement、作業メモのevidence欄を整備する依頼
+- `idiot`: blocked理由、未確認事項、人間判断待ちを判断質問へ整理する依頼
+- `scaffold-project`: AI利用開始の仕様根拠、作業契約、AGENTS、短命な作業コンテクスト雛形、Reviewable Gateを作る依頼
+- `scaffold-agent-prep-scout`: `wf-explore` 用のread-only prep scout、repo-local supplement、作業コンテクストのevidence欄を整備する依頼
 - `scaffold-agent-test-runner`: repo内 `test_runner` agent や検証手順を整備する依頼
 - `scaffold-agent-reviewer`: repo固有の専門reviewer、reviewable gate実装、review routingを整備する依頼
-- `audit-docs`: README、AGENTS、PJ文書、検証手順、review条件の矛盾や古い前提を点検する依頼
+- `audit-docs`: README、AGENTS、仕様根拠、作業契約、検証手順、review条件の矛盾や古い前提を点検し、作業結果から長期保存すべき内容をバックポートする依頼
 - `audit-repo-skill`: repo内skill、custom agent、AGENTS、review routing、検証手順の整合を点検する依頼
 - `audit-workflow`: repo内ドキュメントやAGENTS.mdで定義された `wf-*` 系workflowが、一時worktree上でsubagentとして起動した仮想Main Agentにより完走できるか検証し、repo-local不足を自己改善する依頼
 - `migrate-workflow`: 成熟済みrepo内の運用docs、repo-local skill、custom agent、review routing、検証手順を共通workflowへ寄せる移行計画を作る依頼
+- `ui-mock-contract`: UI目的から画像モックを生成し、`screen-catalog.md` や対象画面のscreen specなどのレイアウト・デザイン文書を補強する依頼
 
 自然文で使う場合でも、実装、検証、review判定などの工程workflowを代替しない。ユーザー依頼がそのskillの判断整理、成果物、点検目的に直接一致する場合だけ使う。audit系skillで人間判断が不要な修正を見つけた場合は、同じ作業内で修正し、判断が必要なものだけ戻り先を整理する。
 
-PJ文書群の整合auditも同じく、`project_doc_auditor` custom agentへ委譲する。Main Agent は `audit-docs` の点検を自分で実行しない。audit結果のうち、人間判断が不要な文書修正はMain Agentが適用する。
+仕様根拠と作業契約の整合auditも同じく、`project_doc_auditor` custom agentへ委譲する。Main Agent は `audit-docs` の点検を自分で実行しない。audit結果のうち、人間判断が不要なバックポートまたは文書修正はMain Agentが適用する。
 
 検証はrepo内にscaffoldされた `test_runner` custom agentへ委譲する。Main Agent は `wf-verify` や検証コマンドを直接実行しない。formatterやformat checkは、repo手順でMain Agent担当とされる場合だけ例外として実行し、その結果を検証証跡へ渡す。
 
 reviewable gateはrepo-local supplementで定義された実装を使う。reviewable gate用custom agentへ委譲する方式、または専門reviewer結果とgate文書の照合でgate summaryを作る方式を許容する。Main Agent は証跡なしに `wf-review` を代替判定しない。
+
+同一 `wf-implement` 実行中の `test_runner` は、原則として同じagent sessionを再利用する。reviewable gateの最終判定は、原則としてreview iterationごとに新しいreviewer sessionを使う。専門reviewerや前回指摘の解消確認は、同一task内で同じ観点を継続確認する場合に限り再利用してよい。
 
 ## Skill 一覧
 
@@ -67,7 +70,7 @@ reviewable gateはrepo-local supplementで定義された実装を使う。revie
 
 | Skill | 役割 |
 | --- | --- |
-| `wf-explore` | 実装前に調査、実装計画、修正開始可否、人間レビュー観点、最後の判断質問整理を単一の作業コンテクストで行う。人間がレビューして承認するまで実装を始めない。 |
+| `wf-explore` | 実装前に調査、実装計画、pre-implementation review、修正開始可否、人間レビュー観点、最後の判断質問整理を単一の作業コンテクストで行う。人間がレビューして承認するまで実装を始めない。 |
 | `wf-implement` | 人間が承認した計画を authority として、計画範囲内の実装、対応テスト、自己確認、検証、`audit-docs`、`wf-review` まで進める。 |
 | `wf-verify` | repo内 `test_runner` が、実装後または reviewable gate 前に必要な検証範囲を確定し、検証コマンドを実行して検証証跡をまとめる。 |
 | `wf-review` | repo-local reviewable gate実装が、差分が人間レビューや専門 review へ進める状態か、計画、diff、テスト、計画時のドキュメント根拠、検証結果などの証跡から判定する。 |
@@ -77,17 +80,23 @@ reviewable gateはrepo-local supplementで定義された実装を使う。revie
 
 | Skill | 役割 |
 | --- | --- |
-| `idiot` | blocked 理由や人間判断待ちを、少数の判断質問へ変換する。仕様決定、実装、検証、review 判定は行わない。 |
-| `handoff` | 調査、計画、実装証跡、検証証跡、review 結果などを、次 workflow へ渡せる handoff packet に整理する。 |
-| `audit-docs` | README、AGENTS、PJ文書、検証手順、review条件、代表的な作業メモを横断し、文書同士の矛盾、古い前提、未決事項、実装や検証手順との食い違いを点検する。人間判断が不要な文書修正は同じ作業内で行う。 |
+| `idiot` | blocked 理由や人間判断待ちを、判断質問へ変換する。仕様決定、実装、検証、review 判定は行わない。 |
+| `handoff` | 調査、計画、実装証跡、検証証跡、review 結果などを、次のAIセッションが読める handoff packet に整理する。 |
+| `audit-docs` | README、AGENTS、仕様根拠、作業契約、検証手順、review条件、作業コンテクストMarkdownとstate fileを横断し、文書同士の矛盾、古い前提、未決事項、実装や検証手順との食い違いを点検する。作業結果から長期保存すべき内容を `docs/spec/` または `docs/contract/` へバックポートする。 |
+
+### UI Design Planning
+
+| Skill | 役割 |
+| --- | --- |
+| `ui-mock-contract` | `$imagegen` でUI mock screenshotを生成し、その画像を最終仕様にせず、Design Brief、Layout Contract、Asset Contract、Component Contract、Visual Acceptance Criteriaへ分解して `screen-catalog.md` や対象画面のscreen specを補強する。実装、検証、review判定は行わない。 |
 
 ### Scaffold And Audit
 
 | Skill | 役割 |
 | --- | --- |
-| `scaffold-project` | 新規プロジェクトや文書が薄い既存プロジェクト向けに、初期コンテキスト、AI 利用ルール、AGENTS.md、作業メモ雛形などを作る。 |
-| `scaffold-agent-prep-scout` | `wf-explore` の前処理として、repo 固有の read-only prep scout agent、workflow supplement、作業メモの evidence 記録欄を設計、提案、作成する。 |
-| `scaffold-agent-reviewer` | `wf-review` を補完する repo 固有の専門 review skill や custom agent を設計、提案、作成する。 |
+| `scaffold-project` | 新規プロジェクトや文書が薄い既存プロジェクト向けに、仕様根拠、作業契約、AI 利用ルール、AGENTS.md、短命な作業コンテクスト雛形などを作る。 |
+| `scaffold-agent-prep-scout` | `wf-explore` の前処理として、repo 固有の read-only prep scout agent、workflow supplement、作業コンテクストの evidence 記録欄を設計、提案、作成する。 |
+| `scaffold-agent-reviewer` | `wf-explore` の pre-implementation review と `wf-review` を補完する repo 固有の専門 review skill や custom agent を設計、提案、作成する。 |
 | `scaffold-agent-test-runner` | repo 内に検証専用の `test_runner` custom agent と、agent が読む repo 固有の検証手順を作る。 |
 | `audit-repo-skill` | repo 内の AGENTS.md、`.codex/skills`、`.codex/agents`、review routing、検証手順を点検し、役割重複や危険な権限漏れを見つける。人間判断が不要なskill、agent、文書修正は同じ作業内で行う。 |
 | `audit-workflow` | 一時 `git worktree` とsubagentとして起動した仮想Main Agentで、docs / 実装 / test を伴う架空タスクが `wf-explore` から `wf-review` まで完走できるか検証し、scaffold / audit 系skillで補正できるrepo-local不足を自己改善する。 |
@@ -100,12 +109,23 @@ reviewable gateはrepo-local supplementで定義された実装を使う。revie
 | `subagent-orchestration` | Main Agent が subagent に作業を委譲するときの共通契約を定める。ownership、handoff、Delegation Packet、stale result の扱いなどを整理する。 |
 | `subagent-execution` | subagent 側の共通実行規約を定める。委譲文を authority とし、scope を広げず、`done` / `blocked` の結果状態で返す。 |
 
+## 文書分類
+
+`scaffold-project` で作る文書は、長期保存する根拠と短命な作業入力を分ける。
+
+- `docs/spec/`: 仕様根拠。PJ目的、要件、architecture、画面責務、判断ログを置く。主に `wf-explore` で関連箇所を確認する。
+- `docs/contract/`: 作業契約。AI利用ルール、検証コマンド、review条件、workflow map、安全境界を置く。`wf-explore`、`wf-implement`、`audit-docs` が関係範囲を確認する。
+- `docs/work/`: 短命な作業コンテクスト。人間が読む `<task-id>.md` と、workflow用の `<task-id>.state.json` を1ペアで使う。state fileは進捗、対象ファイル、関連ファイル、コマンドと結果、Markdownへの参照だけを置き、方針や調査メモはMarkdownへ置く。作業完了後は、残すべき内容だけ `docs/spec/` または `docs/contract/` へバックポートし、個別作業ファイルは削除してよい。
+
 ## 基本ワークフロー
 
-通常の変更は、ユーザーまたは作業メモで明示された workflow skill から始める。実装前準備では、コードとテストだけでなく、要件、設計、AGENTS、検証手順、review条件などのドキュメントを根拠資料として確認する。典型的には次の流れになる。
+通常の変更は、ユーザーまたは作業コンテクストで明示された workflow skill から始める。実装前準備では、コードとテストだけでなく、仕様根拠、作業契約、AGENTS、検証手順、review条件などのドキュメントを根拠資料として確認する。典型的には次の流れになる。
 
 ```text
 wf-explore
+  -> choose pre-implementation reviewer from impact scope
+  -> pre-implementation review
+  -> update plan memo from pre-implementation review result
   -> human approval
   -> wf-implement
   -> formatter / format check by Main Agent when repo-local rules say so
@@ -151,10 +171,10 @@ current artifacts
 
 流れ:
 
-1. `scaffold-project` でプロジェクト初期文書、AI 利用ルール、作業メモ雛形、Reviewable Gate の基本形を作る。
+1. `scaffold-project` で仕様根拠、作業契約、AI 利用ルール、短命な作業コンテクスト雛形、Reviewable Gate の基本形を作る。
 2. 実装前の事実確認や計画候補整理を分離したい場合は、`scaffold-agent-prep-scout` で repo 内 prep scout と `wf-explore` supplement を作る。
 3. 検証を実装者から分離したい場合は、`scaffold-agent-test-runner` で repo 内 `test_runner` と検証手順を作る。
-4. UI、permission、privacy、data migration など専門 review が必要な領域がある場合は、`scaffold-agent-reviewer` で repo 内 reviewer を作る。
+4. UI、permission、privacy、data migration など専門 review が必要な領域がある場合は、`scaffold-agent-reviewer` で repo 内 reviewer を作る。`wf-explore` の pre-implementation review では、Main Agent が影響範囲から委譲先reviewerを選ぶ。
 5. `audit-repo-skill` で、役割境界、検証手順、配布性、security 観点を確認する。
 
 ### 2. バグ修正や小さな機能追加を進める
@@ -170,15 +190,17 @@ current artifacts
 
 流れ:
 
-1. `wf-explore` で、実装前に既存実装、既存テスト、関連ドキュメント、影響範囲、仮説、リスクを整理し、同じ作業コンテクストで変更方針、変更予定ファイル、テスト方針、検証コマンド、修正開始可否を計画化する。
-2. `wf-explore` の最後に、人間が答えるべき判断質問を `Decision Clarification` として絞る。確認事項がなければ質問数0として報告する。
-3. 人間承認後、`wf-implement` で実装、対応テスト、自己確認を行う。
-4. repo手順でMain Agent担当とされたformatterまたはformat checkを実行し、format完了前にtest、lint、reviewへ進みない。
-5. formatter以外の検証は、repo内 `test_runner` custom agentへ `wf-verify` を委譲する。
-6. repo-local supplementで必須とされた専門reviewを実行し、blocking issueが残る間はE2Eやvisual確認へ進みない。
-7. repo-local supplementに従い、E2E、screenshot、visual確認を後段で実行または委譲する。
-8. `wf-implement` から `audit-docs` を呼び、設計書、検証手順、review条件、代表的な作業メモが実装差分に対して古いまま残っていないか確認する。人間判断が不要な文書修正は同じ作業内で適用し、判断が必要なものは戻り先を記録する。
-9. repo-local supplementで定義されたreviewable gate実装へ `wf-review` を渡し、人間レビューや専門 review へ進める状態か、計画時のドキュメント根拠、文書差分、実装差分、検証結果が矛盾していないかを確認する。
+1. `wf-explore` で、実装前に既存実装、既存テスト、関連ドキュメント、影響範囲、仮説、リスクを整理し、作業コンテクストMarkdownで変更方針、変更予定ファイル、テスト方針、修正開始可否を計画化し、state fileに対象ファイル、関連ファイル、検証コマンド、進捗を記録する。
+2. Main Agent は影響範囲から pre-implementation review の委譲先を選び、専門reviewerへ計画メモを渡し、実装時の注意点、後続review観点、計画上の懸念、今回の非対象範囲を返してもらう。
+3. Main Agent は pre-implementation review の結果を作業コンテクストへ反映する。指摘をそのまま追加実装要求にせず、scopeや仕様判断が変わる場合は人間判断または追加の `wf-explore` へ戻す。
+4. `wf-explore` の最後に、人間が答えるべき判断質問を `Decision Clarification` として整理する。確認事項がなければ「質問はありません。」と返す。
+5. 人間承認後、`wf-implement` で実装、対応テスト、自己確認を行う。
+6. repo手順でMain Agent担当とされたformatterまたはformat checkを実行し、format完了前にtest、lint、reviewへ進まない。
+7. formatter以外の検証は、repo内 `test_runner` custom agentへ `wf-verify` を委譲する。
+8. repo-local supplementで必須とされた専門reviewを実行し、blocking issueが残る間はE2Eやvisual確認へ進まない。
+9. repo-local supplementに従い、E2E、screenshot、visual確認を後段で実行または委譲する。
+10. `wf-implement` から `audit-docs` を呼び、作業コンテクスト、state file、実装差分、検証証跡、review結果から、長期保存すべき内容を `docs/spec/` または `docs/contract/` へバックポートする。人間判断が不要なバックポートや文書修正は同じ作業内で適用し、判断が必要なものは戻り先を記録する。
+11. repo-local supplementで定義されたreviewable gate実装へ `wf-review` を渡し、人間レビューや専門 review へ進める状態か、計画時のドキュメント根拠、文書差分、実装差分、検証結果が矛盾していないかを確認する。
 
 ### 3. Review 指摘を受けて再修正する
 
@@ -208,9 +230,9 @@ current artifacts
 
 流れ:
 
-1. `scaffold-agent-prep-scout` で、repo の `AGENTS.md`、workflow map、repo-local skill、custom agent、作業メモtemplateを調査する。
+1. `scaffold-agent-prep-scout` で、repo の `AGENTS.md`、workflow map、repo-local skill、custom agent、作業コンテクストtemplateを調査する。
 2. `wf-explore` の前処理として分離する read-only scout を、事実確認担当と計画候補整理担当に分けるか判断する。
-3. `.codex/agents/<scout-name>.toml`、repo-local orchestration / execution supplement、`docs/ai/workflow-map.md`、`docs/work/_template.md` のうち必要な最小セットを作る。
+3. `.codex/agents/<scout-name>.toml`、repo-local orchestration / execution supplement、`docs/contract/workflow-map.md`、`docs/work/_template.md`、`docs/work/_template.state.json` のうち必要な最小セットを作る。
 4. Main Agent は `wf-explore` 中に repo-local supplement を読み、指定された prep scout へ `subagent-orchestration` の Delegation Packet で委譲する。
 5. prep scout は実装、検証実行、docs更新、採用判断、計画確定をせず、`done` / `blocked` と evidence を返す。
 6. scout未整備や起動不能の場合は、Main Agent が同じ観点を読解で補い、それでも計画確定に必要な事実、scope、risk、文書根拠が不足する場合だけ `wf-explore` を `blocked` にする。
@@ -241,7 +263,7 @@ current artifacts
 
 流れ:
 
-1. `wf-review` またはrepo-local supplementが repo 固有の専門 review を必要と判断したら、必要な reviewer の責務、trigger、入力証跡を整理する。
+1. `wf-explore` の影響範囲または `wf-review` / repo-local supplement が repo 固有の専門 review を必要とする場合、reviewer の責務、trigger、入力証跡を整理する。
 2. `scaffold-agent-reviewer` で、repo 内 review skill、custom agent、routing 文書を作る。
 3. 専門 reviewer は修正や検証実行ではなく、専門領域の findings、blocking / non-blocking、人間判断が必要な点を返す。
 4. `audit-repo-skill` で、専門 reviewer が release、merge、risk acceptance を承認する記述になっていないか確認する。
@@ -254,17 +276,9 @@ current artifacts
 
 流れ:
 
-1. 既存の成果物から、次 workflow に必要な authority と証跡だけを選ぶ。
-2. `handoff` で handoff type を選ぶ。
-   - `prep-to-execution`
-   - `plan-to-execution`
-   - `execution-to-verification`
-   - `verification-to-reviewable-gate`
-   - `review-to-triage`
-   - `triage-to-execution`
-   - `general-continuation`
-3. 次 workflow が読むべきファイル、読まなくてよい背景、禁止事項、完了条件、blocked 条件を packet 化する。
-4. 未承認の計画や未回答の判断は authority にせず、Open Items として残す。
+1. 既存の成果物から、次のAIセッションが再開に使う authority と証跡だけを選ぶ。
+2. 読むべきファイル、読まなくてよい背景、禁止事項、完了条件、blocked 条件を packet 化する。
+3. 未承認の計画や未回答の判断は authority にせず、Open Items として残す。
 
 ### 8. Repo 内 skill / agent を公開前に点検する
 
@@ -312,12 +326,12 @@ current artifacts
 
 流れ:
 
-1. AGENTS.md、docs、repo-local skill、custom agent、review routing、verification docs、代表的な作業メモを対象にする。
+1. AGENTS.md、docs、repo-local skill、custom agent、review routing、verification docs、代表的な作業コンテクストを対象にする。
 2. 既存資産ごとに `delete`、`delegate-to-common`、`keep-repo-local`、`split`、`needs-common-template`、`blocked-human-decision` へ分類する。
 3. 共通workflowへの移行先、repo側へ薄く残す内容、参照更新順、削除前の逆参照確認を整理する。
 4. 共通側不足を提案する場合でも、repo固有コマンド、reviewer名、app固有ルールは共通skillへ混ぜない。
 
-### 11. PJ文書群を実装計画の根拠として点検する
+### 11. 仕様根拠と作業契約を点検しバックポートする
 
 候補 workflow / agent:
 
@@ -326,26 +340,45 @@ current artifacts
 
 流れ:
 
-1. `project_doc_auditor` custom agent へ委譲し、README、AGENTS、PJ文書、検証手順、review条件、代表的な作業メモを確認する。
+1. `project_doc_auditor` custom agent へ委譲し、README、AGENTS、仕様根拠、作業契約、検証手順、review条件、対象作業コンテクストMarkdownとstate fileを確認する。
 2. 文書同士の矛盾、古い前提、未決事項、実装や検証手順との食い違いを severity 付きで整理する。
-3. findings を `auto-fixable`、`needs-workflow`、`human-decision` に分ける。
-4. 既存証跡から正しい記述が一意に決まる誤記、古い参照、リンク、検証コマンド、説明同期漏れはMain Agentが同じ作業内で修正する。
-5. 事実不足、期待動作やscope整理は `wf-explore`、人間判断は `idiot` または human decision へ戻す。
+3. 作業コンテクスト、state file、実装差分から抽出した内容を `backport-to-spec`、`backport-to-contract`、`task-local`、`human-decision` に分ける。
+4. findings を `auto-fixable`、`needs-workflow`、`human-decision`、`no-action` に分ける。
+5. 既存証跡から正しい記述が一意に決まる誤記、古い参照、リンク、検証コマンド、説明同期漏れ、または一意に移せるバックポートはMain Agentが同じ作業内で修正する。
+6. 事実不足、期待動作やscope整理は `wf-explore`、人間判断は `idiot` または human decision へ戻す。
+
+### 12. 画像モックからUI文書を補強する
+
+候補 workflow / skill:
+
+- `ui-mock-contract`
+- 後続で `wf-explore` または `wf-implement`
+
+流れ:
+
+1. `ui-mock-contract` で、UI目的、surface type、既存UI制約、使えるassetやicon libraryを確認する。
+2. `$imagegen` でUI mock screenshotを生成する。
+3. 生成画像を最終仕様にせず、Mock Breakdownとしてlayout、情報階層、asset、visual anchor、採用しない要素、代替禁止を棚卸しする。
+4. Design Brief、Layout Contract、Asset Contract、Component Contract、Visual Acceptance Criteriaへ変換する。
+5. `screen-catalog.md` へ画面責務、主要状態、responsive expectations、visual check candidateを追加し、対象画面のscreen specへstable visual / layout expectations、forbidden changes、viewport coverage、screenshot baseline方針を追加する。
 
 ## 役割境界
 
 - 共通 skill は、共通 workflow、入力、禁止事項、出力形式を定める。
 - 工程workflowは、ユーザーまたは上流成果物が `$wf-explore` のように明示した場合に使う。
-- repo 固有の検証コマンド、専門 review 観点、custom agent の詳細は、各 repo 内 skill や docs に置きる。
+- repo 固有の検証コマンド、専門 review 観点、custom agent の詳細は、各 repo 内 skill や docs に置く。
 - prep scout は `wf-explore` の前処理として事実確認や計画候補整理を行う。実装、検証実行、docs更新、採用判断、計画確定、修正開始可否の判断はしない。
 - `test_runner` は検証を実行して証跡を返す。修正や review 判定はしない。
 - specialist reviewer は専門領域の review を行う。検証実行、修正、release、merge、risk acceptance はしない。
 - repo-local reviewable gate実装は `wf-review` を使い、レビュー可能条件と routing を判定する。実装は、repo内reviewable gate agent、または専門reviewer結果とgate文書を照合するgate summaryのどちらでもかまわない。repo 固有の深い設計判断を単独では承認しない。
-- バグ修正や実装の根拠になる要件、設計、検証手順、AGENTS、review条件は、`wf-explore` で根拠資料として確認する。文書と実態が食い違う場合は、既存証跡だけで直せるものを更新し、それ以外は追加調査、人間判断、または実装前準備へ戻す。
-- `wf-implement` は `wf-review` の前に `audit-docs` を呼び、設計書や検証手順が古いまま残っていないか確認する。`audit-docs` のfindingは文書整合の扱いであり、実装差分のreview判定や検証結果の代替にはしない。
-- `audit-docs` は文書群を点検する。`project_doc_auditor` は文書を編集しないが、Main Agent はaudit結果のうち人間判断が不要な文書修正を適用する。実装、検証、review判定は行わない。
+- agent session lifecycleは、`test_runner` については `wf-implement`、reviewerについては `wf-review` の規則に従う。`test_runner` は同一実装作業内で再利用を基本とし、reviewable gateの最終判定はiterationごとに新規sessionを基本とする。
+- バグ修正や実装の根拠になる仕様根拠、作業契約、検証手順、AGENTS、review条件は、`wf-explore` で根拠資料として確認する。文書と実態が食い違う場合は、既存証跡だけで直せるものを更新し、それ以外は追加調査、人間判断、または実装前準備へ戻す。
+- pre-implementation review は `wf-explore` 内で計画メモに対して常に行う実装前の専門助言である。Main Agent の判断範囲は、影響範囲からどの専門reviewerへ委譲するかである。review自体は共通必須だが、reviewer名、担当領域、入力証跡、反映先の計画メモ欄はrepo-local supplementで定める。Main Agent は結果を作業コンテクストへ反映するが、指摘をそのまま追加実装要求にしない。scope追加、仕様判断、risk acceptanceが必要な場合は人間判断または追加の `wf-explore` へ戻す。
+- `wf-implement` は `wf-review` の前に `audit-docs` を呼び、作業コンテクスト、state file、実装差分から長期保存すべき内容を `docs/spec/` または `docs/contract/` へバックポートする。`audit-docs` のfindingは文書整合の扱いであり、実装差分のreview判定や検証結果の代替にはしない。
+- `audit-docs` は文書群を点検し、短命な作業コンテクストMarkdownやstate fileを最新化し続けず、必要な内容だけ仕様根拠または作業契約へ移す。`project_doc_auditor` は文書を編集しないが、Main Agent はaudit結果のうち人間判断が不要なバックポートまたは文書修正を適用する。実装、検証、review判定は行わない。
 - `audit-workflow` は一時 `git worktree` とsubagentとして起動した仮想Main Agentで、repo-local workflow資材が `wf-*` 系workflowを完走させられるか検証する。親Main Agentは `wf-*` 検証を直接実行しない。repo-localで定義された呼び出し候補subagentは全てcoverage対象にし、review系subagentが複数ある場合も全て呼ぶ。`pass` または `findings-fixed` の架空差分は要約だけ回収し、一時worktreeを削除する。repo-local不足は scaffold / audit 系skillで補正してよいが、共通skill側の不足は修正案として報告する。
 - `migrate-workflow` は成熟済みrepoの運用資産を共通workflowへ寄せる対応表を作る。移行対象ファイルの削除、移動、編集、検証、review判定は行わない。
+- `ui-mock-contract` はUI mock screenshotから `screen-catalog.md` や対象画面のscreen specを補強する。画像生成と契約化、仕様根拠への反映だけを行い、実装、検証、visual review、acceptance判定は行わない。画像モックはauthorityではなく、そこから抽出した契約を後続workflowの入力にする。
 - `audit-docs` は、この共通repoの `project_doc_auditor` custom agentで実行する。`wf-verify` は各repo内にscaffoldされた `test_runner` で実行する。`wf-review` は各repoのrepo-local supplementで定義されたgate実装を使う。Main Agentは同一agent内で証跡なしに代替判定しない。
 
 ## 運用メモ

@@ -26,6 +26,7 @@ description: ユーザーが $wf-review-triage を明示した場合だけ使う
 最低限、次を確認する。
 
 - 承認済み実装計画、または人間が承認した変更範囲
+- 承認済み計画と同じ `task-id` の `docs/work/<task-id>.state.json` があれば、その進捗、対象ファイル、commands結果
 - 現在のdiff、変更ファイル、実装証跡
 - 検証証跡、未実行検証、artifact
 - 計画時のドキュメント根拠と、文書不整合の扱い
@@ -35,6 +36,8 @@ description: ユーザーが $wf-review-triage を明示した場合だけ使う
 - 権限、tenant、PII、secret、ログ、外部入力、release、risk acceptanceに関する指摘
 
 入力が不足して指摘の扱いを分類できない場合は、`triage_status: blocked` として不足している入力を列挙する。
+
+state fileは進捗、対象ファイル、commands結果を確認する補助証跡であり、承認済み計画や人間承認のauthorityではない。Markdownの承認済み計画、検証証跡、review結果とstate fileが矛盾する場合は、入力不足または再確認が必要なものとして分類する。
 
 ## 分類
 
@@ -97,6 +100,7 @@ triage_status: ready_for_fix / blocked / ready_for_plan / ready_for_investigatio
 ## Inputs
 
 - approved plan:
+- work state file:
 - current diff:
 - verification:
 - documentation evidence:

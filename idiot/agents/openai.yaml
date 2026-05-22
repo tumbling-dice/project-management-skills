@@ -1,7 +1,7 @@
 interface:
   display_name: "idiot"
   short_description: "未決判断を人間向けの質問へ整理する"
-  default_prompt: "$idiot を使って、未確認事項やblocked理由を人間が答えやすい少数の判断質問へ整理してください。"
+  default_prompt: "$idiot を使って、未確認事項やblocked理由を人間が答えやすい判断質問へ整理してください。"
 
 policy:
   allow_implicit_invocation: true

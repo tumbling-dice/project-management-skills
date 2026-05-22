@@ -1,6 +1,6 @@
 ---
 name: migrate-workflow
-description: ユーザーが自然文で、成熟済みrepo内の AGENTS.md、docs、repo-local skill、custom agent、review routing、検証手順、作業メモを、共通project-management workflowへ寄せるための削除・委譲・残置・分解・共通側不足の対応表を作りたいと頼んだ場合に使う。$migrate-workflow の明示でも使う。移行対象ファイルの修正や削除は行わず、移行計画、参照更新順、削除前確認、次workflowを整理する。
+description: ユーザーが自然文で、成熟済みrepo内の AGENTS.md、docs、repo-local skill、custom agent、review routing、検証手順、作業コンテクストを、共通project-management workflowへ寄せるための削除・委譲・残置・分解・共通側不足の対応表を作りたいと頼んだ場合に使う。$migrate-workflow の明示でも使う。移行対象ファイルの修正や削除は行わず、移行計画、参照更新順、削除前確認、次workflowを整理する。
 ---
 
 # migrate-workflow
@@ -10,7 +10,7 @@ description: ユーザーが自然文で、成熟済みrepo内の AGENTS.md、do
 ## 使う場面
 
 - repo-local operational skillを共通workflowへ統一したい。
-- 過去docsや作業メモを、現在の共通workflow成果物やrepo固有補足へ置き換えたい。
+- 過去docsや作業コンテクストを、現在の共通workflow成果物やrepo固有補足へ置き換えたい。
 - repo固有docsを分解し、共通側へ寄せる部分とrepo側へ薄く残す部分を分けたい。
 - `audit-repo-skill` 後に、実際の削除、委譲、残置、参照更新の順序を決めたい。
 - 共通側に足りない雛形やworkflow候補を、repo固有ルールへ変えずに提案したい。
@@ -28,11 +28,11 @@ description: ユーザーが自然文で、成熟済みrepo内の AGENTS.md、do
 移行目的に応じて、次のうち関係するものを確認する。全件を機械的に読むのではなく、移行判断に関係する資産を優先する。
 
 - `AGENTS.md`
-- README、PJ文書、AI利用ルール、review docs、verification docs
-- `docs/work/` の代表的な調査、計画、検証、review、handoff成果物
+- README、仕様根拠、作業契約、review docs、verification docs
+- `docs/work/` の代表的な調査、計画、検証、review、handoff成果物と、対応するstate file
 - `.codex/skills/*/SKILL.md`
 - `.codex/agents/*`
-- repo固有のrouting文書、作業メモtemplate、検証手順
+- repo固有のrouting文書、作業コンテクストtemplate、state file template、検証手順
 - 共通workflow skill一覧と、repoで使う想定の共通skill
 
 入力不足で移行判断ができない場合は、`migration_status: blocked` とし、不足している資産、人間判断、追加auditのどれが必要かを分ける。
@@ -71,11 +71,11 @@ description: ユーザーが自然文で、成熟済みrepo内の AGENTS.md、do
 5. 参照更新順を作る。削除候補は、逆参照確認と代替先の明記が終わるまで削除可能扱いにしない。
 6. 共通側不足は、repo固有のコマンド、reviewer名、文書名、アプリ固有ルールを含めず、一般化したtemplateやworkflow候補として書く。
 7. 人間判断が必要な項目は、`idiot` へ渡せる粒度へ絞る。
-8. 移行計画を会話上またはPJ慣習の作業メモへ出力する。
+8. 移行計画を会話上またはPJ慣習の作業コンテクストへ出力する。PJがstate fileを使う場合でも、移行方針や判断理由はMarkdownへ置き、state fileへ長い計画メモを書かない。
 
 ## 出力先
 
-ユーザーが「計画を残す」「作業メモへ出す」「後続workflowへ渡す」と依頼している場合は、PJ慣習に従って移行計画ファイルを作る。慣習がなければ、共有用の成果物として `docs/work/<task-id>-repo-workflow-migration.md` を推奨する。
+ユーザーが「計画を残す」「作業コンテクストへ出す」「後続workflowへ渡す」と依頼している場合は、PJ慣習に従って移行計画ファイルを作る。慣習がなければ、共有用の成果物として `docs/work/<task-id>-repo-workflow-migration.md` を推奨する。
 
 ユーザーが会話上の整理だけを求めた場合、または対象repoのファイル更新を避けたい場合は、ファイルを作らず会話上に出力する。どちらの場合も、移行対象ファイルの削除、移動、編集はこのskill内では行わない。
 
@@ -141,10 +141,11 @@ migration_status: ready / blocked
 
 ## Blocked Human Decisions
 
-- decision:
-  why blocking:
-  options:
-  recommended default:
+Q1. <質問>
+A1.
+- <選択肢>
+- <選択肢>
+推奨: <推奨初期値と理由>
 
 ## Next Workflow
 

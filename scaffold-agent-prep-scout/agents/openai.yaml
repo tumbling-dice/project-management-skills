@@ -1,4 +1,7 @@
 interface:
-  display_name: "Scaffold Agent Prep Scout"
-  short_description: "Design repo-local read-only prep scout agents for wf-explore."
-  default_prompt: "Use this skill to design repo-local read-only prep scout agents, their workflow supplement, and work-context evidence fields for wf-explore."
+  display_name: "scaffold-agent-prep-scout"
+  short_description: "wf-explore用read-only prep scoutを設計する"
+  default_prompt: "$scaffold-agent-prep-scout を使って、wf-explore用のread-only prep scout、repo-local委譲契約、work-contextのevidence欄を設計してください。実装計画やreview、検証は行わないでください。"
+
+policy:
+  allow_implicit_invocation: true

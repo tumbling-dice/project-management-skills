@@ -1,6 +1,6 @@
 ---
 name: audit-docs
-description: ユーザーが自然文で、README、AGENTS、仕様根拠、作業契約、検証手順、review条件、作業コンテクストやstate fileの矛盾、古い前提、未決事項、実装や検証手順との食い違いを点検したい場合、または作業コンテクスト、state file、実装差分から docs/spec/ と docs/contract/ へバックポートしたい場合に使う。$audit-docs の明示でも使う。実PJでは project_doc_auditor custom agentへ委譲する。人間判断が不要な文書修正はMain Agentが同じ作業内で対応し、判断が必要なものは戻り先と更新候補を整理する。
+description: project文書、作業state、実装証跡の不整合を監査し、一意な文書修正やbackportまで行う。repo内Skill・custom agent監査、実装、検証、review判定には使わず、実PJでは `project_doc_auditor` へ委譲する。
 ---
 
 # audit-docs
@@ -17,15 +17,6 @@ description: ユーザーが自然文で、README、AGENTS、仕様根拠、作�
 - `project_doc_auditor` custom agentが使えない場合は、`audit_status: blocked` とし、必要なagentが無いことを報告する。
 - 実PJでは、同一Main Agentによる代替auditを行わない。代替auditは、このskill自体の開発・検証で明示された場合だけ行う。
 - `project_doc_auditor` の返答を受けた後、Main Agentがfindingを `auto-fixable` / `needs-workflow` / `human-decision` に分け、`auto-fixable` は同じ作業内で修正する。
-
-## 使う場面
-
-- `scaffold-project` で作った文書群を、実装前の根拠として使えるか確認したい。
-- `wf-explore` で、文書不整合候補が見つかった。
-- `wf-implement` 後に、作業コンテクスト、state file、実装差分、検証証跡、review結果から `docs/spec/` または `docs/contract/` へ残す内容を抽出したい。
-- バグ修正や仕様変更の前に、要件、architecture、AGENTS、検証手順、review条件が食い違っていないか見たい。
-- README、仕様根拠、作業契約、AGENTS、検証docs、review docs、作業コンテクストのどれを信じてよいか整理したい。
-- 長く更新されていない文書や、未決事項が放置されていないか確認したい。
 
 ## 使わない場面
 

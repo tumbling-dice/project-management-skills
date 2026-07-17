@@ -30,16 +30,18 @@ Windows PowerShell:
 
 Install script は次を配置する。
 
-- skill: repo直下の各 `SKILL.md` を持つディレクトリを `~/.codex/skills/<skill-name>` へ配置
+- skill: repo直下の各 `SKILL.md` を持つディレクトリを `~/.agents/skills/<skill-name>` へ配置
 - agent: `agents/*.toml` を `~/.codex/agents/<agent-name>.toml` へ配置
 
 Linux / macOS では symlink を作る。既存pathは上書きしない。
 
 Windows では symlink を使わず copy する。既存pathがある場合は確認を出し、`y` または `yes` の場合だけ上書きする。
 
+旧 `~/.codex/skills` に同名Skillがある場合、install scriptは削除や移動を行わない。現行 `~/.agents/skills` への配置を確認してから、重複する旧pathを利用者が別途確認する。
+
 ## Skill Invocation Policy
 
-共通 workflow skill は、原則としてユーザーまたは上流の成果物が `$wf-explore` のように skill 名を明示した場合に使う。
+共通 workflow skill は、原則としてユーザーまたは上流の成果物が `$wf-explore` のように skill 名を明示した場合に使う。Skill本体は現行Codexの共通配置先である `~/.agents/skills` へ、custom agentは `~/.codex/agents` または `$CODEX_HOME/agents` へ配置する。
 
 補助 / scaffold / audit 系 skill は、ユーザーが自然文で判断整理、成果物作成、点検そのものを直接頼んだ場合にも使える。
 
@@ -52,11 +54,10 @@ Windows では symlink を使わず copy する。既存pathがある場合は�
 - `audit-repo-skill`: repo内skill、custom agent、AGENTS、review routing、検証手順の整合を点検する依頼
 - `audit-workflow`: repo内ドキュメントやAGENTS.mdで定義された `wf-*` 系workflowが、一時worktree上でsubagentとして起動した仮想Main Agentにより完走できるか検証し、repo-local不足を自己改善する依頼
 - `migrate-workflow`: 成熟済みrepo内の運用docs、repo-local skill、custom agent、review routing、検証手順を共通workflowへ寄せる移行計画を作る依頼
-- `ui-mock-contract`: UI目的から画像モックを生成し、`screen-catalog.md` や対象画面のscreen specなどのレイアウト・デザイン文書を補強する依頼
 
 自然文で使う場合でも、実装、検証、review判定などの工程workflowを代替しない。ユーザー依頼がそのskillの判断整理、成果物、点検目的に直接一致する場合だけ使う。audit系skillで人間判断が不要な修正を見つけた場合は、同じ作業内で修正し、判断が必要なものだけ戻り先を整理する。
 
-仕様根拠と作業契約の整合auditも同じく、`project_doc_auditor` custom agentへ委譲する。Main Agent は `audit-docs` の点検を自分で実行しない。audit結果のうち、人間判断が不要なバックポートまたは文書修正はMain Agentが適用する。
+仕様根拠と作業契約の整合auditも同じく、`project_doc_auditor` custom agentへ委譲する。このagentはread-heavyな監査向けに `gpt-5.6-terra`、`high` reasoning、read-only sandboxを使う。Main Agent は `audit-docs` の点検を自分で実行せず、audit結果のうち人間判断が不要なバックポートまたは文書修正だけを適用する。
 
 検証はrepo内にscaffoldされた `test_runner` custom agentへ委譲する。Main Agent は `wf-verify` や検証コマンドを直接実行しない。formatterやformat checkは、repo手順でMain Agent担当とされる場合だけ例外として実行し、その結果を検証証跡へ渡す。
 
@@ -84,12 +85,6 @@ reviewable gateはrepo-local supplementで定義された実装を使う。revie
 | `handoff` | 調査、計画、実装証跡、検証証跡、review 結果などを、次のAIセッションが読める handoff packet に整理する。 |
 | `audit-docs` | README、AGENTS、仕様根拠、作業契約、検証手順、review条件、作業コンテクストMarkdownとstate fileを横断し、文書同士の矛盾、古い前提、未決事項、実装や検証手順との食い違いを点検する。作業結果から長期保存すべき内容を `docs/spec/` または `docs/contract/` へバックポートする。 |
 
-### UI Design Planning
-
-| Skill | 役割 |
-| --- | --- |
-| `ui-mock-contract` | `$imagegen` でUI mock screenshotを生成し、その画像を最終仕様にせず、Design Brief、Layout Contract、Asset Contract、Component Contract、Visual Acceptance Criteriaへ分解して `screen-catalog.md` や対象画面のscreen specを補強する。実装、検証、review判定は行わない。 |
-
 ### Scaffold And Audit
 
 | Skill | 役割 |
@@ -98,7 +93,7 @@ reviewable gateはrepo-local supplementで定義された実装を使う。revie
 | `scaffold-agent-prep-scout` | `wf-explore` の前処理として、repo 固有の read-only prep scout agent、workflow supplement、作業コンテクストの evidence 記録欄を設計、提案、作成する。 |
 | `scaffold-agent-reviewer` | `wf-explore` の pre-implementation review と `wf-review` を補完する repo 固有の専門 review skill や custom agent を設計、提案、作成する。 |
 | `scaffold-agent-test-runner` | repo 内に検証専用の `test_runner` custom agent と、agent が読む repo 固有の検証手順を作る。 |
-| `audit-repo-skill` | repo 内の AGENTS.md、`.codex/skills`、`.codex/agents`、review routing、検証手順を点検し、役割重複や危険な権限漏れを見つける。人間判断が不要なskill、agent、文書修正は同じ作業内で行う。 |
+| `audit-repo-skill` | repo 内の AGENTS.md、`.agents/skills`、`.codex/agents`、review routing、検証手順を点検し、役割重複や危険な権限漏れを見つける。人間判断が不要なskill、agent、文書修正は同じ作業内で行う。 |
 | `audit-workflow` | 一時 `git worktree` とsubagentとして起動した仮想Main Agentで、docs / 実装 / test を伴う架空タスクが `wf-explore` から `wf-review` まで完走できるか検証し、scaffold / audit 系skillで補正できるrepo-local不足を自己改善する。 |
 | `migrate-workflow` | 成熟済みrepo内の運用docs、repo-local skill、custom agent、review routing、検証手順を、共通workflowへ委譲・削除・残置・分解する計画に整理する。 |
 
@@ -288,7 +283,7 @@ current artifacts
 
 流れ:
 
-1. AGENTS.md、`.codex/skills`、`.codex/agents`、review routing、verification docs を対象にする。
+1. AGENTS.md、`.agents/skills`、`.codex/agents`、review routing、verification docs を対象にする。
 2. 役割境界、workflow routing、配布性、検証と権限、security 観点で findings を出す。
 3. findings を `auto-fixable`、`needs-workflow`、`human-decision` に分ける。
 4. 人間判断が不要な誤記、古いpath、古いコマンド、明白な説明同期漏れは同じ作業内で修正する。
@@ -347,21 +342,6 @@ current artifacts
 5. 既存証跡から正しい記述が一意に決まる誤記、古い参照、リンク、検証コマンド、説明同期漏れ、または一意に移せるバックポートはMain Agentが同じ作業内で修正する。
 6. 事実不足、期待動作やscope整理は `wf-explore`、人間判断は `idiot` または human decision へ戻す。
 
-### 12. 画像モックからUI文書を補強する
-
-候補 workflow / skill:
-
-- `ui-mock-contract`
-- 後続で `wf-explore` または `wf-implement`
-
-流れ:
-
-1. `ui-mock-contract` で、UI目的、surface type、既存UI制約、使えるassetやicon libraryを確認する。
-2. `$imagegen` でUI mock screenshotを生成する。
-3. 生成画像を最終仕様にせず、Internal Extraction Pointsでlayout、情報階層、asset、visual anchor、採用しない要素、代替禁止を棚卸しする。
-4. Design Brief、Layout Contract、Asset Contract、Component Contract、Visual Acceptance Criteriaへ変換する。
-5. `screen-catalog.md` へ画面責務、主要状態、responsive expectations、visual check candidateを追加し、対象画面のscreen specへstable visual / layout expectations、forbidden changes、viewport coverage、screenshot baseline方針を追加する。
-
 ## 役割境界
 
 - 共通 skill は、共通 workflow、入力、禁止事項、出力形式を定める。
@@ -378,7 +358,6 @@ current artifacts
 - `audit-docs` は文書群を点検し、短命な作業コンテクストMarkdownやstate fileを最新化し続けず、必要な内容だけ仕様根拠または作業契約へ移す。`project_doc_auditor` は文書を編集しないが、Main Agent はaudit結果のうち人間判断が不要なバックポートまたは文書修正を適用する。実装、検証、review判定は行わない。
 - `audit-workflow` は一時 `git worktree` とsubagentとして起動した仮想Main Agentで、repo-local workflow資材が `wf-*` 系workflowを完走させられるか検証する。親Main Agentは `wf-*` 検証を直接実行しない。repo-localで定義された呼び出し候補subagentは全てcoverage対象にし、review系subagentが複数ある場合も全て呼ぶ。`pass` または `findings-fixed` の架空差分は要約だけ回収し、一時worktreeを削除する。repo-local不足は scaffold / audit 系skillで補正してよいが、共通skill側の不足は修正案として報告する。
 - `migrate-workflow` は成熟済みrepoの運用資産を共通workflowへ寄せる対応表を作る。移行対象ファイルの削除、移動、編集、検証、review判定は行わない。
-- `ui-mock-contract` はUI mock screenshotから `screen-catalog.md` や対象画面のscreen specを補強する。画像生成と契約化、仕様根拠への反映だけを行い、実装、検証、visual review、acceptance判定は行わない。画像モックはauthorityではなく、そこから抽出した契約を後続workflowの入力にする。
 - `audit-docs` は、この共通repoの `project_doc_auditor` custom agentで実行する。`wf-verify` は各repo内にscaffoldされた `test_runner` で実行する。`wf-review` は各repoのrepo-local supplementで定義されたgate実装を使う。Main Agentは同一agent内で証跡なしに代替判定しない。
 
 ## 運用メモ

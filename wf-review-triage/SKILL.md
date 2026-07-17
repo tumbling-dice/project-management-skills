@@ -1,18 +1,11 @@
 ---
 name: wf-review-triage
-description: ユーザーが $wf-review-triage を明示した場合だけ使う。人間review、specialist review、wf-review の指摘を、承認済み計画内で修正するもの、ドキュメント根拠不足として再計画へ戻すもの、再検証するもの、追加調査へ戻すもの、人間判断へ戻すものに分類する。指摘対応の実装は行わない。
+description: "`$wf-review-triage` が明示された場合だけ使う。review指摘を計画内修正、再検証、再計画、追加調査、専門review、人間判断へ分類し、次のownerへ渡す。指摘対応の実装やreview再判定は行わない。"
 ---
 
 # wf-review-triage
 
 このskillは、review後の指摘をそのまま実装へ流し込まず、どの指摘をどのworkflowへ戻すべきか分類するためのワークフローである。目的は、review指摘を承認済み計画のscope、検証証跡、非対象範囲、人間判断に照らして整理し、次の修正サイクルへ渡せる形にすることである。
-
-## 使う場面
-
-- 人間review、specialist review、`wf-review` の指摘が返ってきた。
-- `wf-implement` の再修正へ戻す前に、指摘が計画内か計画外かを分けたい。
-- 複数のreviewerの指摘が混ざっており、修正、検証、再計画、追加調査、人間判断の戻り先を整理したい。
-- blocking / non-blocking / follow-up の扱いを明確にしたい。
 
 ## 使わない場面
 

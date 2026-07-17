@@ -1,7 +1,7 @@
 interface:
   display_name: "wf-review"
   short_description: "差分がレビュー可能か証跡で判定する"
-  default_prompt: "$wf-review を使って、この差分が人間レビューまたは専門reviewへ進める状態か判定してください。"
+  default_prompt: "$wf-review を使って、承認済み計画、diff、テスト、検証、文書、安全影響の証跡から、この差分が人間または専門reviewへ進める状態か判定してください。修正はせず、blockerと戻り先を返してください。"
 
 policy:
   allow_implicit_invocation: false

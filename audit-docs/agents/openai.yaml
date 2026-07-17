@@ -1,7 +1,7 @@
 interface:
   display_name: "audit-docs"
   short_description: "仕様根拠と作業契約を点検し、必要な内容をバックポートする"
-  default_prompt: "$audit-docs を使って、README、AGENTS、仕様根拠、作業契約、検証手順、review条件、作業コンテクストの整合を点検し、人間判断が不要なバックポートや文書修正は同じ作業内で対応してください。"
+  default_prompt: "$audit-docs を使って、指定scopeの文書と実装・検証証跡を監査してください。一意に決まる文書修正とbackportは適用し、判断が必要な項目は根拠、影響、次のownerを返してください。"
 
 policy:
   allow_implicit_invocation: true

@@ -1,6 +1,6 @@
 ---
 name: wf-review
-description: ユーザーが $wf-review を明示した場合だけ使う。実PJでは Main Agent が直接実行せず、repo-local supplementで定義されたreviewable gate実装へ委譲または照合する。実装者とは独立した視点で、差分が人間レビューや専門reviewへ進める状態かを判定する。承認済み計画、git diff、変更ファイル、検証結果、未実行検証、非対象範囲、テスト追加・更新、計画時のドキュメント根拠、権限/PII/secret/ログ影響の証跡を確認する。
+description: "`$wf-review` が明示された場合だけ使う。repo-local reviewable gateへ委譲または照合し、計画、diff、テスト、検証、文書、安全影響の証跡から人間／専門reviewへ進めるか判定する。Main Agentによる代替判定や実装修正には使わない。"
 ---
 
 # wf-review
@@ -118,7 +118,7 @@ NG理由に応じて戻り先を明記する。検証証跡不足は `wf-verify`
 
 実PJではrepo-local reviewable gate実装や専門reviewerの応答が詳細証跡である。このskillの最終出力で、gate項目や入力証跡を再テンプレート化しない。
 
-単独で会話上に返す場合は、要点だけを短く返す。
+単独で会話上に返す場合は、判定、blocking evidence、未実行review、戻り先を残し、通過項目と入力一覧の再掲を省く。
 
 ```text
 status: pass | needs-specialist-review | blocked

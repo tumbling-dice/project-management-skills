@@ -1,7 +1,7 @@
 interface:
   display_name: "wf-explore"
   short_description: "調査から実装計画と判断整理までを一体化"
-  default_prompt: "$wf-explore を使って、コード変更前の調査、実装計画、修正開始可否、人間レビュー観点、最後の判断質問整理を単一の作業コンテクストで作ってください。"
+  default_prompt: "$wf-explore を使って、コード変更前の事実、根拠、影響範囲、実装・テスト計画、pre-implementation review、開始可否、判断質問を一つの作業contextへまとめてください。承認までは実装しないでください。"
 
 policy:
   allow_implicit_invocation: false

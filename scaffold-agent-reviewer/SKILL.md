@@ -1,6 +1,6 @@
 ---
 name: scaffold-agent-reviewer
-description: ユーザーが自然文で、repo固有の専門reviewer、pre-implementation review routing、reviewable gate実装、専門review routing、review用skillやagent定義を作りたいと頼んだ場合に使う。$scaffold-agent-reviewer の明示でも使う。repo構成、既存AGENTS.md、.codex/skills、.codex/agents、リスク領域を調査し、責務・リスク・入力証跡ベースでpre-implementation review、reviewable gate実装、専門reviewer候補、routing文書、repo内skill、custom agent定義を提案または作成する。差分そのもののreviewには使わない。
+description: repo固有の専門reviewer、pre-implementation review、reviewable gate、review routing用のSkillとcustom agentを設計・作成する。AGENTS、`.agents/skills`、`.codex/agents`、リスク領域を調査するが、差分review自体には使わない。
 ---
 
 # scaffold-agent-reviewer
@@ -10,15 +10,6 @@ description: ユーザーが自然文で、repo固有の専門reviewer、pre-imp
 ## 目的
 
 `wf-explore` は、実装前計画に対して pre-implementation review を常に行い、Main Agent が影響範囲から委譲先reviewerを選ぶ。`wf-review` は、差分がレビュー可能か、どの専門reviewが必要かを判定する入口である。実PJではMain Agentが証跡なしに直接判定せず、repo-local supplementで定義されたreviewer routingやreviewable gate実装を使う。このskillは、そのrouting、gate実装、判定先となるrepo固有の専門reviewerを作るために使う。
-
-## 使う場面
-
-- `wf-explore` の pre-implementation review で、影響範囲から委譲する専門reviewer routingを用意したい。
-- `wf-review` を実行するrepo-local custom agent、または専門reviewer結果とgate文書を照合するgate summary方式を用意したい。
-- `wf-review` から呼び出す専門reviewerをrepo内に用意したい。
-- 実装者と同じ文脈で判断するとバイアスが出やすい領域を独立reviewerにしたい。
-- 既存の `.codex/skills` や `.codex/agents` を整理し、review routingを明文化したい。
-- repoの実装領域、データ境界、UI、検証、release判断などを責務別にreviewできるようにしたい。
 
 ## 使わない場面
 
@@ -43,7 +34,7 @@ description: ユーザーが自然文で、repo固有の専門reviewer、pre-imp
 1. repoの既存指示を確認する。
    - `AGENTS.md`
    - `.codex/config.toml`
-   - `.codex/skills/*/SKILL.md`
+   - `.agents/skills/*/SKILL.md`
    - `.codex/agents/*`
    - `docs/contract/` または同等のreview文書
 2. repoの主要な変更領域を把握する。
@@ -92,7 +83,7 @@ description: ユーザーが自然文で、repo固有の専門reviewer、pre-imp
 
 repoの慣習に従う。慣習がなければ次を推奨する。
 
-- `.codex/skills/<reviewer-name>/SKILL.md`
+- `.agents/skills/<reviewer-name>/SKILL.md`
 - `.codex/agents/reviewable_gate_reviewer.toml` またはrepo慣習に沿った同等のreviewable gate agent定義
 - `.codex/agents/<reviewer-name>.toml`
 - `docs/contract/specialist-review-routing.md`
@@ -140,6 +131,8 @@ gate互換の出力は、少なくとも次を含める。
 
 ## custom agent定義の内容
 
+custom agentを作る前に、`$subagent-orchestration` の `references/custom-agent-schema.md` を読み、現行TOML schema、model選択、sandbox境界を適用する。
+
 custom agent定義には、次を含める。
 
 - reviewable gate用agentを作る場合は、`$wf-review` をgoverning workflowとして使うこと
@@ -155,7 +148,7 @@ custom agent定義には、次を含める。
 - subagentとして呼び出す場合は、`subagent-execution` またはrepo内の同等規約に従うこと
 - `done` / `blocked` はsubagent応答状態として使い、review判定はその内側の結果として返すこと
 
-agent定義の形式はrepoの既存 `.codex/agents` に合わせる。既存形式がない場合は、まず提案だけを行い、ユーザー確認後に作成する。この制限はcustom agent定義だけに適用する。ユーザーがrepo内skill作成を求めている場合は、既存 `.codex/skills` がなくても `.codex/skills/<reviewer-name>/SKILL.md` を作成する。filesystem権限やrepo制約でrepo内skillを作れない場合は、docs-onlyの代替成果物へ黙って落とさず、作成不能理由、作るべきpath、作成予定内容を `blocked` として報告する。
+agent定義の形式はrepoの既存 `.codex/agents` に合わせる。既存形式がない場合でも、ユーザーが作成を求めているなら `references/custom-agent-schema.md` の必須fieldを持つ最小TOMLを作る。ユーザーがrepo内skill作成を求めている場合は、既存 `.agents/skills` がなくても `.agents/skills/<reviewer-name>/SKILL.md` を作成する。filesystem権限やrepo制約で作成できない場合は、docs-onlyの代替成果物へ黙って落とさず、作成不能理由、作るべきpath、作成予定内容を `blocked` として報告する。
 
 ## review routingの内容
 

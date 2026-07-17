@@ -1,6 +1,6 @@
 ---
 name: scaffold-agent-test-runner
-description: ユーザーが自然文で、repo内に検証専用の test_runner custom agent を作りたい、テストやlintを別agentに任せる準備をしたい、repo固有の検証手順を整備したいと頼んだ場合に使う。$scaffold-agent-test-runner の明示でも使う。repoの検証コマンド、sandbox権限、artifact、timeout、失敗時の戻り先を調査し、repo内agent定義やverification skill / docsを提案または作成する。検証そのものや修正は行わない。
+description: repo固有の検証専用 `test_runner` custom agentとverification Skill／文書を設計・作成する。コマンド、権限、artifact、timeout、失敗時の戻り先を調査するが、検証実行や修正は行わない。
 ---
 
 # scaffold-agent-test-runner
@@ -19,13 +19,6 @@ description: ユーザーが自然文で、repo内に検証専用の test_runner
 - `$wf-verify` から `test_runner` へ委譲できる入力契約と戻り値
 - `subagent-orchestration` に従った、Main Agent から `test_runner` への委譲形式
 - 検証失敗、権限不足、環境不備、flaky疑いの戻り先
-
-## 使う場面
-
-- テストやlintを実装者ではなく別agentに任せたい。
-- `wf-review` へ渡す検証証跡を、実装者の自己申告だけにしたくない。
-- repoごとの検証コマンド、必要権限、artifact、注意点を明文化したい。
-- E2E、画面確認、snapshot、外部service、sandbox制約など、検証実行に独自の注意点がある。
 
 ## 使わない場面
 
@@ -53,7 +46,7 @@ description: ユーザーが自然文で、repo内に検証専用の test_runner
    - `AGENTS.md`
    - `.codex/config.toml`
    - `.codex/agents/*`
-   - `.codex/skills/*/SKILL.md`
+   - `.agents/skills/*/SKILL.md`
    - 検証、review、CI、開発環境に関する文書
 2. 検証コマンドのsource of truthを確認する。
    - project manifest
@@ -84,12 +77,14 @@ description: ユーザーが自然文で、repo内に検証専用の test_runner
 repoの慣習に従う。慣習がなければ次を推奨する。
 
 - `.codex/agents/test_runner.toml`
-- `.codex/skills/<repo-or-purpose>-wf-verify/SKILL.md`
+- `.agents/skills/<repo-or-purpose>-wf-verify/SKILL.md`
 - `docs/contract/verification-commands.md`
 
 repo内verification skillと検証文書の両方を作る場合は、重複を避ける。通常は、agentが読む詳細手順をrepo内skillに置き、人間向けの一覧や運用メモをdocsへ置きる。
 
 ## `test_runner` agent定義に含める内容
+
+custom agentを作る前に、`$subagent-orchestration` の `references/custom-agent-schema.md` を読み、現行TOML schema、model選択、sandbox境界を適用する。
 
 `test_runner` のcustom agent定義には、次を含める。
 
@@ -133,7 +128,7 @@ repo内verification skillには、次を含める。
 
 ## Delegation Packetへの追加
 
-Main Agent から `test_runner` へ渡す委譲文は、`subagent-orchestration` の Delegation Packet を使う。`Agent`、`fork_context: false`、`Scope`、`Goal`、`Do not`、`Evidence`、`Deliver`、`Done when` の順を維持する。
+Main Agent から `test_runner` へ渡す委譲文は、`subagent-orchestration` の Delegation Packet を使う。`Agent`、`Scope`、`Goal`、`Do not`、`Evidence`、`Deliver`、`Done when` の順を維持する。`spawn_agent` 側は `fork_turns: none` を使う。
 
 検証実行では、各欄に次を入れる。
 
@@ -141,7 +136,6 @@ Main Agent から `test_runner` へ渡す委譲文は、`subagent-orchestration`
 # Delegation Packet
 
 Agent: test_runner
-fork_context: false
 
 ## Scope
 

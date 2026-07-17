@@ -1,19 +1,11 @@
 ---
 name: wf-implement
-description: ユーザーが $wf-implement を明示した場合だけ使う。人間が承認した実装計画をauthorityとして、計画範囲内の修正、対応テスト追加・更新、自己確認、関連検証、wf-review 前の audit-docs 呼び出し、wf-review 呼び出し、指摘対応の再修正・再テスト・再レビュー反復を行う。
+description: "`$wf-implement` が明示された場合だけ使う。人間承認済み計画の範囲で実装、対応テスト、検証、`audit-docs`、`wf-review`、計画内指摘の再修正を完了まで進める。未承認計画、scope拡張、risk acceptanceには使わない。"
 ---
 
 # wf-implement
 
 このskillは、人間が承認した実装計画に沿ってコード変更と対応テストを行い、検証後に `audit-docs` で作業コンテクスト、state file、実装差分から長期保存すべき内容を `docs/spec/` または `docs/contract/` へバックポートし、文書差分を含めた最終diffを `wf-review` へ渡すためのワークフローである。承認済み計画を実装時のauthorityとして扱い、実装中やレビュー中に見つかった新しい判断は勝手に取り込まず、必要なら計画や調査へ戻す。
-
-## 使う場面
-
-- `wf-explore` で作成した計画が人間に承認され、修正開始が許可された。
-- 承認済み計画の範囲内で、実装修正と対応テスト追加・更新を進めたい。
-- 実装者として、差分、テスト、検証結果、未実行理由、残懸念を整理したい。
-- 実装後に `wf-review` を呼び、blocking issue があれば修正と再検証を繰り返したい。
-- `wf-review` へ渡す前に、作業コンテクスト、state file、実装差分、検証証跡、review結果から、仕様根拠または作業契約へ残すべき内容を `audit-docs` で抽出したい。
 
 ## 使わない場面
 
@@ -139,7 +131,7 @@ state fileには、実装中に変わるworkflow status、進捗、対象ファ�
 
 承認済み計画や調査メモに書かれている内容を最終出力で再掲しない。詳細な検証結果、review結果、audit結果は、それぞれ `test_runner`、reviewable gate、`audit-docs` の応答やartifactを参照させる。
 
-単独で会話上に返す場合は、要点だけを短く返す。
+単独で会話上に返す場合は、変更結果、検証状態、未解消blocker、次のownerを残し、経過の再掲と一般的な背景を省く。
 
 ```text
 execution_status: completed | partial | blocked

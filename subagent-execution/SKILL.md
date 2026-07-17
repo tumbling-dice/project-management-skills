@@ -1,25 +1,18 @@
 ---
 name: subagent-execution
-description: subagent が委譲を受けて動くときの共通実行規約。委譲文だけを authority として扱い、Assigned Scope を広げず、結果状態を done または blocked として扱う。
+description: subagentが委譲を受けたときに使う共通実行契約。委譲packetをauthorityとし、Assigned Scopeを広げず、成果と根拠を `done` または `blocked` で返す。Main Agentの委譲設計には使わない。
 ---
 
 # subagent-execution
 
-## When To Use
-
-- subagent が Main Agent から委譲を受けて動くとき
-- fork された文脈と委譲文のどちらを優先するか迷いやすいとき
-- agent profile や role-specific instruction を更新し、subagent 共通の振る舞いを揃えたいとき
-
-この skill は subagent 向けである。  
-Main Agent 側の ownership、context handoff、wait/recovery は `subagent-orchestration` で扱う。
+このskillはsubagent向けである。Main Agent側のownership、context handoff、wait／recoveryは `subagent-orchestration` で扱う。
 
 ## Common Rules
 
 - authority として扱うのは、委譲文に再記述された `Scope`、`Goal`、`Do not`、`Deliver`、`Done when` だけである。
 - 委譲文に添付された diff、file path、test 結果、log、再現手順、screenshot refs は authority ではなく evidence である。
 - evidence は authority の解釈を助ける範囲でだけ使う。
-- `fork_context: true` で親の履歴が見えていても、委譲文を優先する。
+- `fork_turns` で親の履歴が渡されていても、委譲packetを優先する。
 - 与えられた Assigned Scope の内部だけで前進し、自分で scope を広げない。
 - 委譲文や evidence で名指しされた file / dir / symbol を読むことはよいが、不足を埋めるために repo や workspace 全体探索へ広げない。
 - 自分が task 全体の owner かどうか、次に誰へ渡すか、追加の subagent が必要かは決めない。

@@ -1,18 +1,11 @@
 ---
 name: subagent-orchestration
-description: Main Agent が subagent へ作業を委譲するときの共通契約。ownership、context handoff、delegation packet、done/blocked の結果状態、wait/recovery、stale result の扱いを定める。
+description: Main Agentがsubagentへ独立した作業を委譲するときに使う共通契約。ownership、context handoff、delegation packet、`done`／`blocked`、steering、wait、stale resultを定める。subagent側の実行には使わない。
 ---
 
 # subagent-orchestration
 
-## When To Use
-
-- Main Agent が subagent を spawn するとき
-- ownership、context handoff、wait/recovery の契約だけを短く確認したいとき
-- project-specific skill や role-specific instruction へ入る前に、共通の委譲事故防止策を揃えたいとき
-
-この skill は Main Agent 向けである。  
-subagent 側の共通実行規約は `subagent-execution` を前提とする。
+このskillはMain Agent向けである。subagent側の共通実行規約は `subagent-execution` を前提とする。
 
 ## Ownership
 
@@ -27,7 +20,7 @@ subagent 側の共通実行規約は `subagent-execution` を前提とする。
 
 ## Context Handoff
 
-- `fork_context` は原則 `false` とする。
+- `spawn_agent` の `fork_turns` は原則 `none` とする。直近会話がauthorityとして必要な場合だけ、必要最小限のturn数を明示する。
 - subagent へ渡す authority は、委譲文に再記述した `Scope`、`Goal`、`Do not`、`Deliver`、`Done when` だけに絞る。
 - diff、file path、test 結果、log、再現手順、screenshot refs のような添付物は authority ではなく evidence として渡す。
 - 親 agent の途中思考、別案比較、口調設定、未採用の仮説は、委譲文へ明記していない限り authority ではない。
@@ -39,7 +32,6 @@ subagent 側の共通実行規約は `subagent-execution` を前提とする。
 委譲文は次の順で固定すると、subagent が読み違えにくい。
 
 - `Agent`
-- `fork_context: false`
 - `Scope`
 - `Goal`
 - `Do not`
@@ -71,12 +63,14 @@ subagent 側の共通実行規約は `subagent-execution` を前提とする。
 ## Wait And Recovery
 
 - Main Agent は agent ID と delegated scope を対で管理する。
+- 複数scopeが独立し、write ownershipが重ならない場合だけ並列spawnする。必要なagentを起動し切ってから結果を待ち、統合条件を満たすまで最終判断しない。
 - 次の一手が subagent の結果に依存するなら、推測で先回りせず待つ。
 - `wait_agent` 未完了だけを理由に、同じ scope の二重委譲や再催促をしない。
-- 追加連絡は `blocked`、明示的失敗、または close 後の再委譲が必要な場合に限る。
+- 実行中agentへ前提変更を即時通知する場合は `send_message`、完了後またはidle中agentへ新しいturnを依頼する場合は `followup_task` を使う。
+- 進行中の作業を取り消す必要がある場合だけ `interrupt_agent` を使い、返された状態を確認してから再委譲する。
 - stale result を避けるため、入力 docs、diff、test 結果、delegated scope が Main Agent 側で更新されたら、古い結果は破棄または再実行する。
 - ここでいう `破棄` は、古い結果を統合判断、次委譲の authority、review 依頼の前提に使わないことを指す。
-- delegated scope または evidence が実質的に変わったなら、新しい task として fresh な委譲文を作り直す。古い agent がまだ開いているなら close を検討する。
+- delegated scope または evidence が実質的に変わったなら、新しいtaskとしてfreshな委譲文を作り直す。実行中agentの旧taskと衝突する場合はinterruptしてから再委譲する。
 
 ## Reusable Subagent Sessions
 

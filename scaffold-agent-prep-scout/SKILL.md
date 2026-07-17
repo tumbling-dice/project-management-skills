@@ -1,6 +1,6 @@
 ---
 name: scaffold-agent-prep-scout
-description: ユーザーが自然文で、repo内に wf-explore 用の read-only prep scout agent を作りたい、実装前の事実確認や計画候補整理を Main Agent から分離したい、context scout / planning scout 相当の custom agent や repo-local supplement を整備したいと頼んだ場合に使う。$scaffold-agent-prep-scout の明示でも使う。repo構成、既存AGENTS.md、.codex/skills、.codex/agents、docs/work template、workflow mapを調査し、read-only prep scout、委譲契約、fallback、blocked条件を提案または作成する。実装計画そのものや差分review、検証実行は行わない。
+description: "`wf-explore` 用のread-only prep scoutとrepo-local委譲契約を設計・作成する。AGENTS、`.agents/skills`、`.codex/agents`、work templateを調査するが、実装計画、差分review、検証実行は行わない。"
 ---
 
 # scaffold-agent-prep-scout
@@ -19,13 +19,6 @@ description: ユーザーが自然文で、repo内に wf-explore 用の read-onl
 - `docs/work/_template.md` または同等templateへの prep scout evidence 記録欄
 - `docs/work/_template.state.json` がある場合のstate fileとの分担確認
 - scout未整備、起動不能、scope不一致の場合のfallbackとblocked条件
-
-## 使う場面
-
-- `wf-explore` の前に、事実確認や要件整理をMain Agentの会話コンテクストから分離したい。
-- 成熟済みrepoで、source、tests、docs、ADR、screen docs、verification docsを分けて読む必要がある。
-- raw requestをすぐ実装taskへ変換せず、既存要件で足りる点、採用候補、保留点、docs更新候補を分けたい。
-- repo-local workflow mapやAGENTS.mdで、実装前read-only補助agentの呼び出し規約を明文化したい。
 
 ## 使わない場面
 
@@ -60,7 +53,7 @@ description: ユーザーが自然文で、repo内に wf-explore 用の read-onl
 1. repoの既存指示を確認する。
    - `AGENTS.md`
    - `.codex/agents/*`
-   - `.codex/skills/*/SKILL.md`
+   - `.agents/skills/*/SKILL.md`
    - `docs/contract/` またはrepo固有workflow map
    - `docs/work/_template.md` と `docs/work/_template.state.json` または同等template
    - `docs/requirements/`、ADR、review、verification文書
@@ -98,14 +91,16 @@ repoの慣習に従う。慣習がなければ次を候補にする。
 
 - `.codex/agents/<context-scout-name>.toml`
 - `.codex/agents/<planning-scout-name>.toml`
-- `.codex/skills/<repo>-subagent-orchestration/SKILL.md`
-- `.codex/skills/<repo>-subagent-execution/SKILL.md`
+- `.agents/skills/<repo>-subagent-orchestration/SKILL.md`
+- `.agents/skills/<repo>-subagent-execution/SKILL.md`
 - `docs/contract/workflow-map.md` への `wf-explore` supplement追記
 - `docs/work/_template.md` への prep scout evidence欄
 
 既存のrepo-local orchestration / execution skillがある場合は、重複作成せず必要な追記に留める。既存templateがある場合は、それをsource of truthとして扱い、共通templateを複製しない。prep scoutの事実、分類、未確認事項はMarkdownへ置き、state fileへ長い調査メモを入れない。
 
 ## custom agent定義の内容
+
+custom agentを作る前に、`$subagent-orchestration` の `references/custom-agent-schema.md` を読み、現行TOML schema、model選択、sandbox境界を適用する。
 
 prep scoutのcustom agent定義には、次を含める。
 
@@ -147,7 +142,7 @@ templateを更新しない場合でも、`wf-explore` の作業コンテクス�
 
 ## Delegation Packetへの接続
 
-Main Agentから prep scout へ渡す委譲文は、`subagent-orchestration` の Delegation Packet を使う。`Agent`、`fork_context: false`、`Scope`、`Goal`、`Do not`、`Evidence`、`Deliver`、`Done when` の順を維持する。
+Main Agentから prep scout へ渡す委譲文は、`subagent-orchestration` の Delegation Packet を使う。`Agent`、`Scope`、`Goal`、`Do not`、`Evidence`、`Deliver`、`Done when` の順を維持する。`spawn_agent` 側は `fork_turns: none` を使う。
 
 prep scout向けには、各欄に次を入れる。
 
@@ -155,7 +150,6 @@ prep scout向けには、各欄に次を入れる。
 # Delegation Packet
 
 Agent: <repo-local scout name>
-fork_context: false
 
 ## Scope
 

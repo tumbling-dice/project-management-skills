@@ -1,7 +1,7 @@
 interface:
   display_name: "audit-repo-skill"
   short_description: "repo内skill・agentを点検し、判断不要な修正まで行う"
-  default_prompt: "$audit-repo-skill を使って、このrepo内のAGENTS.md、.codex/skills、.codex/agents、review routing、検証手順の整合を点検し、人間判断が不要な修正は同じ作業内で対応してください。"
+  default_prompt: "$audit-repo-skill を使って、このrepo内のAGENTS.md、.agents/skills、.codex/agents、review routing、検証手順を監査してください。根拠から一意に決まる修正は適用し、判断が必要な項目は影響と戻り先を示してください。"
 
 policy:
   allow_implicit_invocation: true

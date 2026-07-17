@@ -1,20 +1,11 @@
 ---
 name: audit-repo-skill
-description: ユーザーが自然文で、repo内の AGENTS.md、.codex/skills、.codex/agents、review routing、検証手順の整合、公開前確認、役割重複、ローカルフルパス、古い検証コマンド、危険な権限や禁止操作漏れを点検したいと頼んだ場合に使う。$audit-repo-skill の明示でも使う。人間判断が不要なskill、agent、文書修正は同じ作業内で対応し、判断が必要なものは必要な更新候補と戻り先を整理する。
+description: repo内のAGENTS、Skill、custom agent、review routing、検証手順を監査し、一意修正まで行うが、新規scaffold、検証実行、review判定、移行計画はしない。Skill／agent公開前またはworkflow変更後に使う。
 ---
 
 # audit-repo-skill
 
 このskillは、repo内のAI利用ルール、repo固有skill、custom agent、review routing、検証手順を点検するためのauditワークフローである。目的は、共通skillとrepo固有skillの役割境界、配布性、安全条件、workflow接続を確認し、人間判断が不要な問題を同じ作業内で修正し、判断が必要な候補を整理することである。
-
-## 使う場面
-
-- `.codex/skills` や `.codex/agents` を追加した後に整合を確認したい。
-- 共通skill更新後、repo内skillやAGENTS.mdが古くなっていないか見たい。
-- GitHub公開前に、ローカルフルパス、secret、環境依存の記述を点検したい。
-- reviewable gate、specialist reviewer、test_runner、verification手順のroutingを確認したい。
-- repo内skillが増え、重複や責務の混線を整理したい。
-- repo内運用資産を共通workflowへ寄せる前に、役割境界、配布性、安全条件を点検したい。
 
 ## 使わない場面
 
@@ -30,7 +21,7 @@ description: ユーザーが自然文で、repo内の AGENTS.md、.codex/skills�
 
 - `AGENTS.md`
 - `.codex/config.toml`
-- `.codex/skills/*/SKILL.md`
+- `.agents/skills/*/SKILL.md`
 - `.codex/agents/*`
 - `docs/contract/`
 - `docs/work/` の代表的なMarkdown成果物と、同じtask-idのstate file

@@ -1,6 +1,6 @@
 ---
 name: wf-verify
-description: ユーザーが $wf-verify を明示した場合だけ使う。実PJでは Main Agent が直接実行せず、repo内にscaffoldされた test_runner custom agentへ委譲する。実装後またはreviewable gate前に、承認済み計画、差分、変更ファイル、repo固有の検証手順をもとに検証範囲を確定し、検証結果を証跡として整理する。修正、テスト更新、review判定は行わない。
+description: "`$wf-verify` が明示された場合だけ使う。実PJではrepo-local `test_runner` へ委譲し、承認済み計画、差分、変更ファイル、検証手順から実行範囲と結果証跡を確定する。修正、テスト更新、review判定は行わない。"
 ---
 
 # wf-verify
@@ -24,14 +24,6 @@ repo内 `test_runner` またはverification手順が使えない場合は、Main
 - 承認済み計画、差分、変更ファイル、追加または更新したテスト、非対象範囲を `test_runner` へ渡せる入力にまとめる。
 - 検証結果、artifact、warning、未実行理由を証跡として整理する。
 - 失敗や未実行がある場合に、次の戻り先を決める。
-
-## 使う場面
-
-- 実装後に、計画された検証コマンドを `test_runner` へ委譲したい。
-- `wf-review` へ渡す検証証跡を整理したい。
-- test、lint、build、typecheck、E2E、smoke、visual確認などの実行結果をまとめたい。
-- 検証失敗、権限不足、環境不備、未実行検証を分類したい。
-- repo内 `test_runner` に検証コマンド実行を任せたい。
 
 ## 使わない場面
 
@@ -142,7 +134,7 @@ repo内 `test_runner` またはverification手順が使えない場合は、Main
 
 実PJではrepo内 `test_runner` の応答が詳細証跡である。このskillの最終出力で、コマンドごとの詳細結果や入力証跡を再テンプレート化しない。
 
-単独で会話上に返す場合は、要点だけを短く返す。
+単独で会話上に返す場合は、実行した検証、結果、未実行理由、artifact、次のownerを残し、入力証跡とログ全文の再掲を省く。
 
 ```text
 verification_status: pass | fail | blocked | partial

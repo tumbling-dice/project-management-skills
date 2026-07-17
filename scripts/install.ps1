@@ -4,11 +4,14 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Skills use the cross-client Agent Skills location; custom agents remain Codex-specific.
 $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $CodexHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME ".codex" }
-$SkillsDir = Join-Path $CodexHome "skills"
+$SkillsDir = Join-Path (Join-Path $HOME ".agents") "skills"
 $AgentsDir = Join-Path $CodexHome "agents"
 
+# Copies one path without silently replacing an existing user installation.
+# Parameters: Source and Destination paths. Returns: no pipeline output.
 function Copy-ItemWithPrompt {
     param(
         [Parameter(Mandatory = $true)][string]$Source,

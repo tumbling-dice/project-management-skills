@@ -1,6 +1,6 @@
 ---
 name: audit-workflow
-description: ユーザーが自然文で、repo内ドキュメントやAGENTS.mdで定義された wf-* 系workflowが、git worktreeとsubagentとして起動した仮想Main Agentで完走できるか検証し、scaffold / audit 系skillで補正できるrepo-local不足は同じ作業内で自己改善したいと頼んだ場合に使う。親Main Agentはwf-*検証を直接実行しない。共通skill側の不足で完走できない場合はblockedとして修正案を返す。$audit-workflow の明示でも使う。
+description: repoの `wf-*` workflowを一時worktree上の仮想Main Agentで完走検証し、repo-local不足をscaffold／audit Skillで補正する。親Main Agentは検証を直接実行せず、共通Skill側の不足は修正せずblockedで返す。
 ---
 
 # audit-workflow
@@ -8,13 +8,6 @@ description: ユーザーが自然文で、repo内ドキュメントやAGENTS.md
 このskillは、repo内の `AGENTS.md`、docs、repo-local skill、custom agent、review routing、検証手順が、`wf-explore` から `wf-implement`、`wf-verify`、`audit-docs`、`wf-review` までの実運用に耐えるかを、一時 `git worktree` とsubagentとして起動した仮想Main Agentで検証するためのworkflowである。
 
 目的は、workflow資材を読むだけの静的点検ではなく、docs / 実装 / test が必ず変更される架空タスクを使って、計画、仮想承認、実装、検証委譲、文書audit、reviewable gate まで完走できる状態へ repo-local 資材を自己改善することである。
-
-## 使う場面
-
-- repo内のAI workflow、`AGENTS.md`、workflow map、repo-local skill、custom agentが、`wf-*` 系workflowで想定通りに使われるか検証したい。
-- `test_runner`、prep scout、reviewable gate、specialist reviewer、`project_doc_auditor` との接続不足を、実行シナリオで発見したい。
-- scaffold / audit 系skillで補正できるrepo-local不足を同じ作業内で修正し、再検証したい。
-- 共通skill側の仕様不足、矛盾、表現不足により完走できない箇所を、repo-local修正と分けて報告したい。
 
 ## 使わない場面
 
@@ -44,7 +37,7 @@ description: ユーザーが自然文で、repo内ドキュメントやAGENTS.md
 2. `git status --short` で未コミット差分を確認する。
 3. repo-local supplement候補を確認する。
    - `AGENTS.md`
-   - `.codex/skills/`
+   - `.agents/skills/`
    - `.codex/agents/`
    - `docs/contract/`
    - `docs/spec/`
@@ -120,7 +113,7 @@ repoに実装やtestが存在しない場合は、`scaffold-project`、`scaffold
 ## 仮想実行
 
 1. 親Main Agentが `workflow_audit_virtual_main` subagentを起動する。
-   - `fork_context: false` を原則とする。
+   - `fork_turns: none` を原則とする。
    - 親Main Agentの途中思考や採用案ではなく、一時worktree path、scenario要件、Expected Subagent Coverage、禁止事項、repo-local supplement候補、出力契約だけを渡す。
    - `workflow_audit_virtual_main` は仮想Main Agentとして、下位subagentを `subagent-orchestration` で呼び出してよいことを明記する。
 2. `workflow_audit_virtual_main` が、一時worktree内で `$wf-explore` を実行する。
@@ -145,7 +138,6 @@ repoに実装やtestが存在しない場合は、`scaffold-project`、`scaffold
 
 ```md
 Agent: workflow_audit_virtual_main
-fork_context: false
 
 Scope:
 - Work only inside: <temp worktree path>
@@ -286,7 +278,7 @@ Done when:
 
 findingは次に分類する。
 
-- `repo-local-auto-fixable`: `AGENTS.md`、docs、`.codex/skills`、`.codex/agents`、repo-local workflow supplementの修正で完走に近づくもの。
+- `repo-local-auto-fixable`: `AGENTS.md`、docs、`.agents/skills`、`.codex/agents`、repo-local workflow supplementの修正で完走に近づくもの。
 - `needs-scaffold`: `scaffold-project`、`scaffold-agent-prep-scout`、`scaffold-agent-test-runner`、`scaffold-agent-reviewer` で補正できるもの。
 - `needs-audit`: `audit-docs`、`audit-repo-skill` で補正できるもの。
 - `common-skill-blocked`: 共通skill本体の不足、矛盾、誤記、入力契約不足が原因のもの。

@@ -1,0 +1,7 @@
+interface:
+  display_name: "subagent-execution"
+  short_description: "委譲scope内でdone／blockedを返す"
+  default_prompt: "$subagent-execution を使って、委譲packetをauthorityとしてAssigned Scope内だけを実行し、成果と根拠をdoneまたはblockedで返してください。"
+
+policy:
+  allow_implicit_invocation: true

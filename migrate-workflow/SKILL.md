@@ -1,19 +1,11 @@
 ---
 name: migrate-workflow
-description: ユーザーが自然文で、成熟済みrepo内の AGENTS.md、docs、repo-local skill、custom agent、review routing、検証手順、作業コンテクストを、共通project-management workflowへ寄せるための削除・委譲・残置・分解・共通側不足の対応表を作りたいと頼んだ場合に使う。$migrate-workflow の明示でも使う。移行対象ファイルの修正や削除は行わず、移行計画、参照更新順、削除前確認、次workflowを整理する。
+description: 成熟済みrepoのAGENTS、docs、repo-local Skill、custom agent、review／検証資材を共通workflowへ移す対応表を作る。対象ファイルは変更・削除せず、委譲、残置、分解、参照更新順、削除条件を計画する。
 ---
 
 # migrate-workflow
 
 このskillは、すでに運用しているrepo内のAI運用docs、repo-local skill、custom agent、review routing、検証手順を、共通project-management workflowへ寄せるための移行計画を作るworkflowである。目的は、既存資産を残すことではなく、共通workflowへ委譲できる部分とrepo固有制約として残す部分を分け、削除や更新の順序を人間が確認できる形にすることである。
-
-## 使う場面
-
-- repo-local operational skillを共通workflowへ統一したい。
-- 過去docsや作業コンテクストを、現在の共通workflow成果物やrepo固有補足へ置き換えたい。
-- repo固有docsを分解し、共通側へ寄せる部分とrepo側へ薄く残す部分を分けたい。
-- `audit-repo-skill` 後に、実際の削除、委譲、残置、参照更新の順序を決めたい。
-- 共通側に足りない雛形やworkflow候補を、repo固有ルールへ変えずに提案したい。
 
 ## 使わない場面
 
@@ -30,7 +22,7 @@ description: ユーザーが自然文で、成熟済みrepo内の AGENTS.md、do
 - `AGENTS.md`
 - README、仕様根拠、作業契約、review docs、verification docs
 - `docs/work/` の代表的な調査、計画、検証、review、handoff成果物と、対応するstate file
-- `.codex/skills/*/SKILL.md`
+- `.agents/skills/*/SKILL.md`
 - `.codex/agents/*`
 - repo固有のrouting文書、作業コンテクストtemplate、state file template、検証手順
 - 共通workflow skill一覧と、repoで使う想定の共通skill

@@ -2,8 +2,9 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# Skills follow the current cross-client Agent Skills location; custom agents remain Codex-specific.
+skills_dir="$HOME/.agents/skills"
 codex_home="${CODEX_HOME:-$HOME/.codex}"
-skills_dir="$codex_home/skills"
 agents_dir="$codex_home/agents"
 dry_run=0
 
@@ -14,7 +15,7 @@ Usage: scripts/install.sh [--dry-run]
 Installs project-management skills and common custom agents for Codex.
 
 Behavior:
-  - skills are symlinked into $CODEX_HOME/skills or ~/.codex/skills
+  - skills are symlinked into ~/.agents/skills
   - agents are symlinked into $CODEX_HOME/agents or ~/.codex/agents
   - existing paths are not overwritten
 USAGE
@@ -37,12 +38,16 @@ for arg in "$@"; do
   esac
 done
 
+# Return success only for directories that Codex can discover as skills.
+# Args: path to inspect. Returns: shell success/failure status.
 is_skill_dir() {
   local path="$1"
   [[ -d "$path" ]] || return 1
   [[ -f "$path/SKILL.md" ]] || return 1
 }
 
+# Create one non-destructive symlink, or report the planned action in dry-run mode.
+# Args: source path and destination path. Returns: zero unless symlink creation fails.
 link_path() {
   local src="$1"
   local dest="$2"

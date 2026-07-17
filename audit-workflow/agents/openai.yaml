@@ -1,7 +1,7 @@
 interface:
   display_name: "audit-workflow"
   short_description: "wf-*系workflowを仮想Main Agentで完走検証し自己改善する"
-  default_prompt: "$audit-workflow を使って、このrepo内のAGENTS.md、docs、repo-local skill、custom agent、review routing、検証手順が wf-* 系workflowで完走できるかを、一時worktreeとsubagentとして起動した仮想Main Agentで検証してください。親Main Agentはwf-*検証を直接実行せず、scaffold / audit 系skillで補正できるrepo-local不足だけ同じ作業内で修正してください。"
+  default_prompt: "$audit-workflow を使って、repoの wf-* workflowを一時worktree上の仮想Main Agentで完走検証してください。親では実行せず、repo-local不足だけ補正し、共通Skill側の不足は根拠つきでblockedとして返してください。"
 
 policy:
   allow_implicit_invocation: true

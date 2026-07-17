@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: ユーザーが $handoff を明示した場合だけ使う。作業成果物を、次のAIセッションが読めるhandoff packetへ整理する。長い作業文脈を圧縮し、authority、入力証跡、未確認事項、非対象範囲、再開時のownerを明確にする。実装、検証、review判定は行わない。
+description: "`$handoff` が明示された場合だけ使う。作業成果物を次のAIセッション向けpacketへ圧縮し、authority、証跡、未確認事項、非対象範囲、ownerを明示する。新規調査、実装、検証、review判定は行わない。"
 ---
 
 # handoff
@@ -8,12 +8,6 @@ description: ユーザーが $handoff を明示した場合だけ使う。作業
 このskillは、作業成果物を次のAIセッションが読めるhandoff packetに整理する。目的は、長い会話履歴や複数の `docs/work` 成果物に依存せず、次のagentが必要なauthorityと証跡だけを読めるようにすることである。
 
 出力は人間が読む報告ではなく、次のAIがそのまま入力として読める圧縮packetにする。
-
-## 使う場面
-
-- 実装前準備、承認済み計画、実装証跡、検証証跡、review指摘を次セッションで読める形へ圧縮したい。
-- 作業が長くなり、次のagentへ渡す文脈を圧縮したい。
-- 次のCodexセッションで、会話履歴を読まずに作業を再開したい。
 
 ## 使わない場面
 

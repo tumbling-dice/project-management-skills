@@ -1,6 +1,6 @@
 ---
 name: scaffold-project
-description: ユーザーが自然文で、AIコーディングエージェント向けの新規PJ立ち上げ、文書が少ない既存PJの初期整備、AGENTS.md、AI利用ルール、短命な作業コンテクスト雛形、Reviewable Gate、初期検証文書の作成を頼んだ場合に使う。$scaffold-project の明示でも使う。通常の実装、コードレビュー、成熟済みPJの計画更新には使わない。
+description: 新規または文書が薄いPJへ、AGENTS、AI利用ルール、仕様・作業契約、短命な作業context、Reviewable Gate、初期検証文書を作る。通常実装、code review、成熟済みPJの更新には使わない。
 ---
 
 # scaffold-project
@@ -48,7 +48,6 @@ description: ユーザーが自然文で、AIコーディングエージェン�
    - AIにUI実装、修正、visual pass準備を任せるPJ: `docs/contract/ui-implementation-rules.md`
    - visual baselineやscreenshot reviewを早期に使うPJ: 対象画面ごとの `docs/spec/screens/<screen-id>.md`
    - UIの共通token、theme color、component使用条件を固定したいPJ: `docs/spec/design-system.md`
-   - UIのlayout、visual anchor、asset方針を画像モックから補強したいPJ: `$ui-mock-contract`
 4. 不足すると危険な文書や誤解を生む事実だけ、簡潔に確認質問する。
 5. 下の関連referenceを読み、対応するtemplateを使って文書を作成または更新する。
 6. 最後に次を報告する:
@@ -70,7 +69,7 @@ description: ユーザーが自然文で、AIコーディングエージェン�
 - `references/agent-instructions.md`: `AGENTS.md` 初稿ルール。
 - `references/work/work-context.md`: 短命な作業コンテクスト、state file、変更説明の雛形。
 - `references/contract/reviewable-gate.md`: レビュー開始条件。
-- UIを持つPJでは `references/spec/requirements-brief.md` と `references/workflow.md` を使い、画面責務とvisual review候補を追加文書へ分ける。画像モックで `screen-catalog.md` や対象画面のscreen specを補強する場合は `$ui-mock-contract` を使う。
+- UIを持つPJでは `references/spec/requirements-brief.md` と `references/workflow.md` を使い、画面責務とvisual review候補を追加文書へ分ける。
 
 ## 雛形
 

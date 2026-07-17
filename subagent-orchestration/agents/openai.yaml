@@ -1,0 +1,7 @@
+interface:
+  display_name: "subagent-orchestration"
+  short_description: "独立scopeのsubagent委譲を設計する"
+  default_prompt: "$subagent-orchestration を使って、独立scope、write ownership、evidence、成果、停止条件を持つ委譲packetを作り、現行subagent toolで結果を統合してください。"
+
+policy:
+  allow_implicit_invocation: true

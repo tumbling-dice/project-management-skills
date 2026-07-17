@@ -63,6 +63,8 @@ Windows では symlink を使わず copy する。既存pathがある場合は�
 
 reviewable gateはrepo-local supplementで定義された実装を使う。reviewable gate用custom agentへ委譲する方式、または専門reviewer結果とgate文書の照合でgate summaryを作る方式を許容する。Main Agent は証跡なしに `wf-review` を代替判定しない。
 
+実装済みtest artifactが変わる場合、`wf-review` は共通の `test_reviewer` custom agentへ `$review-tests` を委譲し、その結果をrepo-local gateへ渡す。`review-tests` はテスト計画を対象にしないため、`wf-explore` のpre-implementation reviewでは呼ばない。
+
 同一 `wf-implement` 実行中の `test_runner` は、最初のsession idを保持し、原則として同じagent sessionを再利用する。新しいsessionは、古いdiff、古いcheckout、壊れた環境状態、誤った前提、別task、別ブランチ、別worktreeなどの理由がある場合だけ使い、理由を検証証跡に残す。reviewable gateの最終判定は、原則としてreview iterationごとに新しいreviewer sessionを使う。専門reviewerや前回指摘の解消確認は、同一task内で同じ観点を継続確認する場合に限り再利用してよい。
 
 ## Skill 一覧
@@ -76,6 +78,12 @@ reviewable gateはrepo-local supplementで定義された実装を使う。revie
 | `wf-verify` | repo内 `test_runner` が、実装後または reviewable gate 前に必要な検証範囲を確定し、検証コマンドを実行して検証証跡をまとめる。 |
 | `wf-review` | repo-local reviewable gate実装が、差分が人間レビューや専門 review へ進める状態か、計画、diff、テスト、計画時のドキュメント根拠、検証結果などの証跡から判定する。 |
 | `wf-review-triage` | 人間 review、専門 review、reviewable gate の指摘を、計画内修正、ドキュメント根拠不足、検証不足、再計画、追加調査、人間判断などに分類する。 |
+
+### Review Support
+
+| Skill | 役割 |
+| --- | --- |
+| `review-tests` | `wf-review` から実装済みtest artifactを受け取り、oracle、意味のある境界、test弱体化、flakiness候補を `test_reviewer` がread-onlyでレビューする。`wf-explore` では使わない。 |
 
 ### Clarification And Handoff
 
@@ -129,6 +137,8 @@ wf-explore
   -> E2E / visual verification when repo-local rules require it
   -> audit-docs
   -> wf-review
+     -> test_reviewer / review-tests when test artifacts changed
+     -> repo-local reviewable gate
   -> human review / specialist review
 ```
 
@@ -263,6 +273,8 @@ current artifacts
 3. 専門 reviewer は修正や検証実行ではなく、専門領域の findings、blocking / non-blocking、人間判断が必要な点を返す。
 4. `audit-repo-skill` で、専門 reviewer が release、merge、risk acceptance を承認する記述になっていないか確認する。
 
+実装済みtest artifactの変更はrepo固有reviewerの有無にかかわらず、`wf-review` 内で共通 `test_reviewer` へ `$review-tests` を委譲する。このreviewerはテスト計画しかない `wf-explore` では呼ばない。
+
 ### 7. 長い作業を次の agent や次の session へ渡す
 
 候補 workflow:
@@ -304,9 +316,9 @@ current artifacts
 
 1. `audit-workflow` で、一時 `git worktree` を作成し、本体worktreeの未コミット差分もpatchとして持ち込む。
 2. 親Main Agentは、仮想Main Agent subagentを起動し、自分では `wf-*` 検証を直接実行しない。
-3. 仮想Main Agent subagentが、docs / 実装 / test が必ず変更され、repo-localで定義された呼び出し候補subagentをすべて呼ぶ架空タスクを選び、`wf-explore`、仮想承認、`wf-implement`、`wf-verify`、`audit-docs`、`wf-review` まで進める。
+3. 仮想Main Agent subagentが、docs / 実装 / test が必ず変更され、共通workflowとrepo-localで定義された呼び出し候補subagentをすべて呼ぶ架空タスクを選び、`wf-explore`、仮想承認、`wf-implement`、`wf-verify`、`audit-docs`、`wf-review` まで進める。
 4. formatter、linter、test、build、typecheck、E2Eは実行せず、未実行理由をWorkflow Traceへ残す。
-5. review系subagentが複数ある場合は、1種類だけで代表させず、reviewable gate、specialist reviewer、review triage、visual / evidence reviewerなどの全候補を呼ぶ。
+5. review系subagentが複数ある場合は、1種類だけで代表させず、共通 `test_reviewer`、reviewable gate、specialist reviewer、review triage、visual / evidence reviewerなどの全候補を呼ぶ。
 6. repo-local不足があれば scaffold / audit 系skillで補正し、最大2回まで再検証する。
 7. `audit_status: pass` または `findings-fixed` の場合、架空差分は人間review対象にせず、Workflow Traceと差分要約を回収して一時worktreeを削除する。
 8. 共通skill側の不足で完走できない場合は、repo-local修正へ混ぜず `blocked` とし、対象skillと修正案を報告する。
@@ -350,15 +362,16 @@ current artifacts
 - prep scout は `wf-explore` の前処理として事実確認や計画候補整理を行う。実装、検証実行、docs更新、採用判断、計画確定、修正開始可否の判断はしない。
 - `test_runner` は検証を実行して証跡を返す。修正や review 判定はしない。
 - specialist reviewer は専門領域の review を行う。検証実行、修正、release、merge、risk acceptance はしない。
+- 共通 `test_reviewer` は `wf-review` で実装済みtest artifactのoracle、境界、弱体化、flakiness候補をreviewする。検証実行や修正を行わず、`wf-explore` のpre-implementation reviewには参加しない。
 - repo-local reviewable gate実装は `wf-review` を使い、レビュー可能条件と routing を判定する。実装は、repo内reviewable gate agent、または専門reviewer結果とgate文書を照合するgate summaryのどちらでもかまわない。repo 固有の深い設計判断を単独では承認しない。
 - agent session lifecycleは、`test_runner` については `wf-implement`、reviewerについては `wf-review` の規則に従う。`test_runner` は同一実装作業内で再利用を基本とし、reviewable gateの最終判定はiterationごとに新規sessionを基本とする。
 - バグ修正や実装の根拠になる仕様根拠、作業契約、検証手順、AGENTS、review条件は、`wf-explore` で根拠資料として確認する。文書と実態が食い違う場合は、既存証跡だけで直せるものを更新し、それ以外は追加調査、人間判断、または実装前準備へ戻す。
 - pre-implementation review は `wf-explore` 内で計画メモに対して常に行う実装前の専門助言である。Main Agent の判断範囲は、影響範囲からどの専門reviewerへ委譲するかである。review自体は共通必須だが、reviewer名、担当領域、入力証跡、反映先の計画メモ欄はrepo-local supplementで定める。Main Agent は結果を作業コンテクストへ反映するが、指摘をそのまま追加実装要求にしない。scope追加、仕様判断、risk acceptanceが必要な場合は人間判断または追加の `wf-explore` へ戻す。
 - `wf-implement` は `wf-review` の前に `audit-docs` を呼び、作業コンテクスト、state file、実装差分から長期保存すべき内容を `docs/spec/` または `docs/contract/` へバックポートする。`audit-docs` のfindingは文書整合の扱いであり、実装差分のreview判定や検証結果の代替にはしない。
 - `audit-docs` は文書群を点検し、短命な作業コンテクストMarkdownやstate fileを最新化し続けず、必要な内容だけ仕様根拠または作業契約へ移す。`project_doc_auditor` は文書を編集しないが、Main Agent はaudit結果のうち人間判断が不要なバックポートまたは文書修正を適用する。実装、検証、review判定は行わない。
-- `audit-workflow` は一時 `git worktree` とsubagentとして起動した仮想Main Agentで、repo-local workflow資材が `wf-*` 系workflowを完走させられるか検証する。親Main Agentは `wf-*` 検証を直接実行しない。repo-localで定義された呼び出し候補subagentは全てcoverage対象にし、review系subagentが複数ある場合も全て呼ぶ。`pass` または `findings-fixed` の架空差分は要約だけ回収し、一時worktreeを削除する。repo-local不足は scaffold / audit 系skillで補正してよいが、共通skill側の不足は修正案として報告する。
+- `audit-workflow` は一時 `git worktree` とsubagentとして起動した仮想Main Agentで、repo-local workflow資材が `wf-*` 系workflowを完走させられるか検証する。親Main Agentは `wf-*` 検証を直接実行しない。共通workflowとrepo-localで定義された呼び出し候補subagentは全てcoverage対象にし、review系subagentが複数ある場合も全て呼ぶ。`pass` または `findings-fixed` の架空差分は要約だけ回収し、一時worktreeを削除する。repo-local不足は scaffold / audit 系skillで補正してよいが、共通skill側の不足は修正案として報告する。
 - `migrate-workflow` は成熟済みrepoの運用資産を共通workflowへ寄せる対応表を作る。移行対象ファイルの削除、移動、編集、検証、review判定は行わない。
-- `audit-docs` は、この共通repoの `project_doc_auditor` custom agentで実行する。`wf-verify` は各repo内にscaffoldされた `test_runner` で実行する。`wf-review` は各repoのrepo-local supplementで定義されたgate実装を使う。Main Agentは同一agent内で証跡なしに代替判定しない。
+- `audit-docs` は、この共通repoの `project_doc_auditor` custom agentで実行する。`wf-verify` は各repo内にscaffoldされた `test_runner` で実行する。`wf-review` はtest artifact変更時に共通 `test_reviewer` を使い、その結果を各repoのrepo-local supplementで定義されたgate実装へ渡す。Main Agentは同一agent内で証跡なしに代替判定しない。
 
 ## 運用メモ
 

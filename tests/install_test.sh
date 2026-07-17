@@ -21,7 +21,9 @@ assert_contains() {
 output="$(HOME="$test_root/home" CODEX_HOME="$test_root/codex" "$repo_root/scripts/install.sh" --dry-run)"
 
 assert_contains "$output" "$test_root/home/.agents/skills/wf-explore"
+assert_contains "$output" "$test_root/home/.agents/skills/review-tests"
 assert_contains "$output" "$test_root/codex/agents/project_doc_auditor.toml"
+assert_contains "$output" "$test_root/codex/agents/test_reviewer.toml"
 
 if [[ -e "$test_root/home/.agents" || -e "$test_root/codex/agents" ]]; then
   echo "dry-run created installation directories" >&2

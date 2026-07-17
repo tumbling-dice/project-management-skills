@@ -7,7 +7,7 @@ description: "`$wf-review` が明示された場合だけ使う。repo-local rev
 
 このskillは、差分が人間レビューまたは専門reviewへ進める状態かを確認するための共通ワークフローである。実装者の意図ではなく、計画、差分、テスト、検証結果、未実行検証、非対象範囲などの証跡を見る。
 
-このskillは、`$scaffold-agent-reviewer` で整備された repo-local reviewable gate実装、専門reviewer、review routingを使う。reviewer設計、routing文書、gate summary方式の詳細はこのskillへ複製しない。
+このskillは、`$scaffold-agent-reviewer` で整備された repo-local reviewable gate実装、専門reviewer、review routingを使う。加えて、実装済みtest artifactが変わる場合は、共通の `test_reviewer` custom agentへ `$review-tests` を委譲する。reviewer設計、routing文書、gate summary方式の詳細はこのskillへ複製しない。
 
 ## 目的
 
@@ -15,7 +15,7 @@ description: "`$wf-review` が明示された場合だけ使う。repo-local rev
 
 ## 実行形態
 
-実PJでは、Main Agentがこのskillを根拠なしに直接判定してはいけない。repo-local supplementで定義されたreviewable gate agent、またはgate summary方式へ証跡を渡す。
+実PJでは、Main Agentがこのskillを根拠なしに直接判定してはいけない。必須の共通／repo-local専門reviewを完了してから、repo-local supplementで定義されたreviewable gate agent、またはgate summary方式へ証跡を渡す。
 
 repo-local supplementにreviewable gate実装がない場合は、`status: blocked` とし、`$scaffold-agent-reviewer` へ戻す。実装者の長い会話履歴や採用案を正当化する説明ではなく、承認済み計画、diff、検証証跡、専門review結果などの証跡を入力にする。
 
@@ -39,6 +39,7 @@ reviewable gateの最終判定は、原則としてreview iterationごとに新�
 - 変更ファイル一覧
 - 非対象範囲
 - 追加または更新したテスト
+- test artifactが変わる場合は `test_reviewer` の `$review-tests` 結果
 - 計画時のドキュメント根拠と、文書不整合の扱い
 - 実行した検証コマンドと結果
 - 未実行検証の理由とリスク
@@ -52,6 +53,18 @@ reviewable gateの最終判定は、原則としてreview iterationごとに新�
 ユーザーが明示した検証証跡、計画、スクリーンショット、ログ要約は、git管理外やuntrackedであっても入力証跡として読んでかまわない。その場合は `入力証跡` に「明示指定された外部/未追跡証跡」として記録する。ただし、git diffに含まれない証跡は変更ファイル一覧とは分けて扱い、差分そのものの根拠として混ぜない。
 
 state fileは進捗、対象ファイル、関連ファイル、commands結果を確認する補助証跡であり、承認済み計画や人間承認のauthorityではない。Markdownの承認済み計画や検証証跡とstate fileが矛盾する場合は、`blocked` として戻り先を示す。
+
+## Test implementation review
+
+テスト、fixture、test helper、snapshot、golden fileの追加／更新／削除、またはskip、xfail、retry、timeout、filter、test discovery、assertion設定の変更がある場合は、repo-local gateの最終判定前に `test_reviewer` custom agentへ `$review-tests` を委譲する。
+
+- `$subagent-orchestration` のDelegation Packetで、承認済み範囲、期待動作の根拠、current diff、変更test artifact、対象実装、関連helper／fixture／設定、検証証跡、非対象範囲を渡す。
+- `test_reviewer` には実装者の長い会話履歴を渡さず、現在のartifactと証跡だけを渡す。
+- `review_status: blocked` はgateのblocking evidenceへ含め、findingごとの戻り先に従う。
+- `result: blocked` はreview証跡不足として扱い、不足物を補うまでgateを `pass` にしない。
+- test artifactに変更がない場合は、`$review-tests` を未実行理由付きの任意reviewとして増やさない。
+
+このreviewerは実装済みテストだけを対象とする。`wf-explore` のテスト計画に対するpre-implementation reviewでは呼ばない。
 
 ## 出力先
 
@@ -78,7 +91,7 @@ state fileは進捗、対象ファイル、関連ファイル、commands結果�
 repo-local gate実装が確認する観点は、`$scaffold-agent-reviewer` で整備されたreview routingとgate条件に従う。共通workflowとしては、少なくとも次の証跡が揃っているかを確認する。
 
 - 承認済み計画との対応、非対象範囲、変更ファイル
-- テスト追加または更新、テスト弱体化の有無
+- テスト追加または更新、テスト弱体化の有無と、trigger時の `$review-tests` 結果
 - 計画時のドキュメント根拠と、差分との矛盾有無
 - 検証結果、未実行検証の理由とリスク
 - 必須専門reviewerの結果または未実行理由
@@ -97,7 +110,9 @@ repo-local gate実装が確認する観点は、`$scaffold-agent-reviewer` で�
 
 ## Specialist review routing
 
-専門reviewerの選定はrepo-local review routingに従う。routingが未整備、または必要なreviewerが存在しない場合は、必要な責務と入力証跡を記録し、`$scaffold-agent-reviewer` へ戻す。
+共通 `test_reviewer` のtriggerは「Test implementation review」に従う。それ以外の専門reviewerの選定はrepo-local review routingに従う。routingが未整備、または必要なreviewerが存在しない場合は、必要な責務と入力証跡を記録し、`$scaffold-agent-reviewer` へ戻す。
+
+triggerに該当するのに共通 `test_reviewer` または `$review-tests` が利用できない場合は、`status: blocked` とし、不足するagent／skillを明記する。Main Agentが同じ会話内でテスト実装reviewを代替しない。
 
 ## NG時の戻り先
 
@@ -135,6 +150,7 @@ next: human review | specialist review | wf-verify | wf-implement | wf-explore |
 
 - 実装者の説明だけでpassにしない。
 - repo-local supplementのgate条件や必須reviewerを読まずにpassにしない。
+- triggerに該当する `$review-tests` を省略またはMain Agentで代替してpassにしない。
 - 検証未実行や証跡不足を「問題なし」と扱わない。
 - テスト削除、skip、assertion弱体化を見逃してpassにしない。
 - ドキュメント根拠不足、または計画時の文書根拠と差分の矛盾を見逃してpassにしない。

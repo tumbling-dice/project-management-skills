@@ -43,11 +43,12 @@ description: repoの `wf-*` workflowを一時worktree上の仮想Main Agentで�
    - `docs/spec/`
    - `docs/work/`
    - repo固有のworkflow map
-4. `wf-explore` で使うprep scout、`wf-verify` で使う `test_runner`、`audit-docs` の `project_doc_auditor`、`wf-review` のreviewable gate実装、専門reviewer routingがあるか確認する。
-5. `.codex/agents/`、repo-local supplement、review routing、verification docs、workflow mapから、`wf-*` workflow内で呼び出される可能性があるsubagentをすべて棚卸しする。
+4. `wf-explore` で使うprep scout、`wf-verify` で使う `test_runner`、`audit-docs` の `project_doc_auditor`、test artifact変更時に `wf-review` で使う共通 `test_reviewer`、repo-local reviewable gate実装、専門reviewer routingがあるか確認する。
+5. 共通workflow、`.codex/agents/`、repo-local supplement、review routing、verification docs、workflow mapから、`wf-*` workflow内で呼び出される可能性があるsubagentをすべて棚卸しする。
    - prep scout系
    - `test_runner`系
    - `project_doc_auditor`
+   - test artifact変更時の共通 `test_reviewer`
    - reviewable gate系
    - specialist review / review系
    - E2E / visual / evidence確認系
@@ -102,7 +103,7 @@ description: repoの `wf-*` workflowを一時worktree上の仮想Main Agentで�
 - 検証コマンド候補が存在し、実行せず `not_run` 証跡として扱える。
 - repo-local review routingまたはreviewable gateの入力証跡を作れる。
 - `Expected Subagent Coverage` に列挙した全subagentのtrigger条件を満たす。
-- review系subagentが複数ある場合は、1種類だけで代表させない。repo-localで定義されたreviewable gate、specialist reviewer、review triage、visual / evidence reviewerなど、workflow内で呼び出される可能性があるreview系subagentをすべて呼ぶ。
+- review系subagentが複数ある場合は、1種類だけで代表させない。共通 `test_reviewer`、repo-local reviewable gate、specialist reviewer、review triage、visual / evidence reviewerなど、workflow内で呼び出される可能性があるreview系subagentをすべて呼ぶ。
 - 単一の小タスクで全subagentを自然に呼べない場合は、同じaudit iteration内の複合タスクとして、複数領域のdocs / 実装 / test変更を含めてよい。
 - security、privacy、release、本番操作のrisk acceptanceが必要なtriggerは本採用しない。安全な架空入力、fixture、docs-only risk note、または非本番のtest対象で同じroutingだけを発火させる。
 
@@ -256,7 +257,7 @@ Done when:
 
 - `wf-explore` で調査、計画、作業コンテクストMarkdown、state file、Decision Clarification が作られたか。
 - `workflow_audit_virtual_main` subagentが起動され、親Main Agentが `wf-*` 検証を直接実行していないか。
-- `Expected Subagent Coverage` が作られ、repo-localで定義された呼び出し候補subagentが漏れなく列挙されたか。
+- `Expected Subagent Coverage` が作られ、共通workflowとrepo-localで定義された呼び出し候補subagentが漏れなく列挙されたか。
 - coverage taskが `Expected Subagent Coverage` の全subagentを呼ぶように設計されたか。
 - `wf-explore` でrepo-local prep scoutが必要な場合に呼び出されたか。未整備なら補正または明確なfindingになったか。
 - 仮想承認が計画にだけ適用され、security、privacy、release、本番操作の判断を確定していないか。
@@ -267,6 +268,7 @@ Done when:
 - `test_runner` が複数sessionになった場合、古いdiff、古いcheckout、壊れた環境状態、誤った前提、別task、別ブランチ、別worktreeのいずれかの理由がWorkflow Traceに残っているか。
 - Workflow Traceと `Expected Subagent Coverage` に、下位subagentの `session_id` または `agent_id` が記録されているか。idがない場合、coverageはrecall behaviorを立証できないfindingとして扱う。
 - `audit-docs` が `project_doc_auditor` に委譲されたか。
+- test artifactを変更した `wf-review` が共通 `test_reviewer` へ `$review-tests` を委譲したか。
 - `wf-review` がrepo-local reviewable gate実装を使ったか。
 - specialist reviewerやrepo-local reviewerが複数ある場合に、すべてroutingされたか。
 - `Expected Subagent Coverage` の中に呼ばれていないagentが残った状態で `pass` にしていないか。
@@ -328,7 +330,7 @@ findingは次に分類する。
 - `wf-review` をMain Agentが証跡なしに代替判定しない。
 - repo-local不足を共通skill問題として報告しない。
 - 共通skill側の不足をrepo-local修正で隠さない。
-- repo-localで定義されたreview系subagentが複数あるのに、1種類だけ呼んでcoverage完了扱いにしない。
+- 共通workflowまたはrepo-localで定義されたreview系subagentが複数あるのに、1種類だけ呼んでcoverage完了扱いにしない。
 - `Expected Subagent Coverage` に未呼び出しagentが残っている状態で `pass` または `findings-fixed` にしない。
 - human decisionが必要な事項を第一候補で本採用しない。
 - `pass` または `findings-fixed` で、架空差分が残っていることだけを理由に一時worktreeを保全しない。

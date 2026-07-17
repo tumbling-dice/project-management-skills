@@ -1,0 +1,7 @@
+interface:
+  display_name: "review-tests"
+  short_description: "wf-reviewでテスト実装の意味・境界・安定性をレビューする"
+  default_prompt: "$review-tests を使って、変更されたテストが仕様上の誤りを検出でき、境界条件を意味ある形で扱い、環境から隔離されているかレビューしてください。修正や検証実行はしないでください。"
+
+policy:
+  allow_implicit_invocation: false

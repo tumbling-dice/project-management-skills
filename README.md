@@ -43,8 +43,9 @@ Windows では symlink を使わず copy する。既存pathがある場合は�
 
 共通 workflow skill は、原則としてユーザーまたは上流の成果物が `$wf-explore` のように skill 名を明示した場合に使う。Skill本体は現行Codexの共通配置先である `~/.agents/skills` へ、custom agentは `~/.codex/agents` または `$CODEX_HOME/agents` へ配置する。
 
-補助 / scaffold / audit 系 skill は、ユーザーが自然文で判断整理、成果物作成、点検そのものを直接頼んだ場合にも使える。
+feedback / 補助 / scaffold / audit 系 skill は、ユーザーが自然文で判断整理、成果物作成、点検そのものを直接頼んだ場合にも使える。
 
+- `feedback-to-criteria`: Codexの提案、判断、質問、説明、操作、生成物への否定、修正、差戻し、範囲限定を、個別修正または根拠のある判断基準へ整理する依頼
 - `idiot`: blocked理由、未確認事項、人間判断待ちを判断質問へ整理する依頼
 - `scaffold-project`: AI利用開始の仕様根拠、作業契約、AGENTS、短命な作業コンテクスト雛形、Reviewable Gateを作る依頼
 - `scaffold-agent-prep-scout`: `wf-explore` 用のread-only prep scout、repo-local supplement、作業コンテクストのevidence欄を整備する依頼
@@ -89,6 +90,7 @@ reviewable gateはrepo-local supplementで定義された実装を使う。revie
 
 | Skill | 役割 |
 | --- | --- |
+| `feedback-to-criteria` | Codexが生成または選択した内容への否定、修正、差戻し、範囲限定を分類し、今回だけの修正と再利用可能な判断基準を分ける。既存方針との重複と一般化の根拠を確認し、関係のない成果物へ変更を広げない。 |
 | `idiot` | blocked 理由や人間判断待ちを、判断質問へ変換する。仕様決定、実装、検証、review 判定は行わない。 |
 | `handoff` | 調査、計画、実装証跡、検証証跡、review 結果などを、次のAIセッションが読める handoff packet に整理する。 |
 | `audit-docs` | README、AGENTS、仕様根拠、作業契約、検証手順、review条件、作業コンテクストMarkdownとstate fileを横断し、文書同士の矛盾、古い前提、未決事項、実装や検証手順との食い違いを点検する。作業結果から長期保存すべき内容を `docs/spec/` または `docs/contract/` へバックポートする。 |

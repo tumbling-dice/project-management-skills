@@ -44,7 +44,7 @@ Windows PowerShell:
 
 工程を進める `wf-*` skill は、ユーザーまたは上流の成果物が名前を明示した場合に使います。たとえば、実装前の調査を始める依頼では `$wf-explore` と指定します。自然文から工程 workflow を推測すると、人間承認や検証の境界が変わるためです。
 
-補助や文書作成を担う skill は、依頼内容がその役割に直接一致する場合に限り、自然文からも使えます。読みやすい日本語への改訂には `write-japanese-docs` を使い、既存の blocked 理由を判断質問へ直す場合には `idiot` を使います。
+補助や文書作成を担う skill は、依頼内容がその役割に直接一致する場合に限り、自然文からも使えます。コードのコメントへ責務や設計理由を残す場合は `document-code-intent` を使います。読みやすい日本語への改訂には `write-japanese-docs` を使い、既存の blocked 理由を判断質問へ直す場合には `idiot` を使います。
 
 目的から選ぶ場合は、次の表を起点にしてください。
 
@@ -55,6 +55,7 @@ Windows PowerShell:
 | 実装後の検証証跡を作る | `wf-verify` |
 | 差分を人間レビューへ渡せるか判定する | `wf-review` |
 | review 指摘の戻り先を決める | `wf-review-triage` |
+| 現在のコードの責務、契約、設計理由だけをコメントへ記録する | `document-code-intent` |
 | 日本語の README、ガイド、仕様書などを作成・改訂する | `write-japanese-docs` |
 | 人間の判断だけを回答可能な質問へ直す | `idiot` |
 | 長い作業を別 agent や別 session へ渡す | `handoff` |
@@ -84,6 +85,12 @@ Windows PowerShell:
 | `feedback-to-criteria` | Codex の提案や生成物へのフィードバックを分析し、今回だけの修正と再利用可能な判断基準へ分ける。 |
 | `idiot` | 既存の blocked 理由や未確認事項を、人間が答えられる判断質問へ変える。仕様決定や実装は行わない。 |
 | `handoff` | 次の agent や session が作業を再開できるように、作業中に得た計画と証跡を packet へまとめる。 |
+
+### Implementation Support
+
+| Skill | 役割 |
+| --- | --- |
+| `document-code-intent` | 実装変更に合わせ、現在のコードの責務、契約、設計理由をコメントへ記録する。ユーザーの指示や今回の変更理由を、変更前後の差分説明としてソースコメントへ残さない。各テストには目的、対象、前提の三項目を必ず記載する。通常の実装やコードレビューは代行しない。 |
 
 ### Review Support
 

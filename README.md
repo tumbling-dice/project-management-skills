@@ -1,8 +1,8 @@
 # Project Management Skills
 
-AI coding agent を使うプロジェクトで、調査から引き継ぎまでの作業を分担するための共通 skill 集です。
+このリポジトリは、複数のプロジェクトで再利用する skill と custom agent を Git で管理するものです。
 
-このリポジトリは、複数のプロジェクトで再利用する skill と custom agent を Git で管理するものです。プロジェクト固有のコマンドや reviewer の設定は、各リポジトリの skill や文書で管理することを前提としています。
+プロジェクト固有のコマンドや reviewer の設定は、各リポジトリの skill や文書で管理することを前提としています。
 
 ## インストール
 
@@ -77,15 +77,6 @@ Windows PowerShell:
 | `wf-review` | 計画と差分を照合する。テストや文書根拠などの証跡も確認し、人間レビューへ進める状態か判定する。 |
 | `wf-review-triage` | review で受けた指摘を分類する。そのうえで、実装や検証などの適切な工程へ戻す。 |
 
-### Writing And Handoff
-
-| Skill | 役割 |
-| --- | --- |
-| `write-japanese-docs` | 読者と利用場面に合わせて日本語文書を作成・改訂する。対象は README や仕様書など、人間が読む文書である。創作や翻訳だけの依頼には使わない。 |
-| `feedback-to-criteria` | Codex の提案や生成物へのフィードバックを分析し、今回だけの修正と再利用可能な判断基準へ分ける。 |
-| `idiot` | 既存の blocked 理由や未確認事項を、人間が答えられる判断質問へ変える。仕様決定や実装は行わない。 |
-| `handoff` | 次の agent や session が作業を再開できるように、作業中に得た計画と証跡を packet へまとめる。 |
-
 ### Implementation Support
 
 | Skill | 役割 |
@@ -110,6 +101,15 @@ Windows PowerShell:
 | `audit-repo-skill` | repo 内の AGENTS.md と agent 資材を監査する。役割や検証手順の正しい内容が一意に決まる場合は同じ作業内で直す。 |
 | `audit-workflow` | 一時 worktree 上の仮想 Main Agent が `wf-*` workflow を完走できるか検証し、repo-local の不足を scaffold または audit skill で補う。 |
 | `migrate-workflow` | 成熟済み repo の運用資産を分類する。そのうえで、共通 workflow へ委譲する範囲と repo に残す範囲を計画する。対象ファイルは変更しない。 |
+
+### Writing And Handoff
+
+| Skill | 役割 |
+| --- | --- |
+| `write-japanese-docs` | 読者と利用場面に合わせて日本語文書を作成・改訂する。対象は README や仕様書など、人間が読む文書である。創作や翻訳だけの依頼には使わない。 |
+| `feedback-to-criteria` | Codex の提案や生成物へのフィードバックを分析し、今回だけの修正と再利用可能な判断基準へ分ける。 |
+| `idiot` | 既存の blocked 理由や未確認事項を、人間が答えられる判断質問へ変える。仕様決定や実装は行わない。 |
+| `handoff` | 次の agent や session が作業を再開できるように、作業中に得た計画と証跡を packet へまとめる。 |
 
 ### Subagent Contract
 
@@ -169,18 +169,6 @@ review 後に問題が見つかった場合は、`wf-review-triage` が戻り先
 
 ## 代表的な使い方
 
-### 日本語文書を作成・改訂する
-
-`write-japanese-docs` は人間が読む日本語文書を対象にします。たとえば README のほか、操作ガイドや仕様書にも使えます。
-
-1. 対象文書と隣接文書を読み、表記規則と事実の根拠を確認する。
-2. 読者と利用場面を定め、読後に行う判断または操作を明らかにする。
-3. 既存構成を尊重しつつ、不足する説明と情報の順序を直す。
-4. リンクや path など、文書内の具体的な記述を根拠と照合する。
-5. repo に文書検査があれば実行し、なければ差分とローカルリンクを確認する。
-
-ただし、文章を変更しないレビューには使いません。翻訳だけの依頼や創作も対象外です。ソースコードの実装には別の workflow を使います。
-
 ### 新規プロジェクトへ AI 作業環境を用意する
 
 まず `scaffold-project` で基本文書を作ります。基本文書には仕様根拠と作業契約のほか、AGENTS.md や作業コンテクストの雛形が含まれます。その後、リポジトリの作業分担に応じて次の agent を追加します。
@@ -223,6 +211,18 @@ review 後に問題が見つかった場合は、`wf-review-triage` が戻り先
 
 `audit-workflow` は一時 worktree 上で仮想 Main Agent を動かします。repo-local の不足は scaffold または audit skill で補正できますが、共通 skill 側の不足はその場で変更せず、対象 skill と修正案を報告します。
 
+### 日本語文書を作成・改訂する
+
+`write-japanese-docs` は人間が読む日本語文書を対象にします。たとえば README のほか、操作ガイドや仕様書にも使えます。
+
+1. 対象文書と隣接文書を読み、表記規則と事実の根拠を確認する。
+2. 読者と利用場面を定め、読後に行う判断または操作を明らかにする。
+3. 既存構成を尊重しつつ、不足する説明と情報の順序を直す。
+4. リンクや path など、文書内の具体的な記述を根拠と照合する。
+5. repo に文書検査があれば実行し、なければ差分とローカルリンクを確認する。
+
+ただし、文章を変更しないレビューには使いません。翻訳だけの依頼や創作も対象外です。ソースコードの実装には別の workflow を使います。
+
 ## Agent の役割境界
 
 | 担当 | 行うこと | 行わないこと |
@@ -238,7 +238,7 @@ review 後に問題が見つかった場合は、`wf-review-triage` が戻り先
 
 ## 運用メモ
 
-- 新しい skill には最低限 `SKILL.md` を置き、必要に応じて `agents/openai.yaml` を追加する。
+- 新しい skill には最低限 `SKILL.md` / `agents/openai.yaml` を追加する。
 - skill を追加または大きく更新したら、`quick_validate.py` で検証し、README の一覧と routing も更新する。
 - skill 本文や公開文書には、個人環境の checkout 先などのローカルフルパスを固定しない。
 - コミットはユーザーが明示した場合だけ行う。

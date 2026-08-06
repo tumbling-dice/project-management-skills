@@ -1,6 +1,6 @@
 ---
 name: feedback-to-criteria
-description: Analyze corrective feedback on ChatGPT or Codex outputs. Use when a user rejects, corrects, sends back, narrows, questions, or expresses dissatisfaction with a proposed recommendation, decision, plan, question, explanation, action, work method, or generated artifact, and the response changes its validity, selection, assumptions, decision criteria, process, or scope. Determine whether the feedback is a one-off correction or a reusable change to the underlying objective, assumptions, criteria, process, quality conditions, or scope. Avoid converting individual objections directly into permanent prohibitions.
+description: "Codexの出力に対する訂正、差戻し、範囲の限定、疑問、不満を分析する。提案、判断、計画、質問、説明、操作、作業方法、生成物への反応によって、妥当性、選択、前提、判断基準、手順、scopeが変わる場合に使う。個別の訂正か、目的、前提、基準、手順、品質条件、scopeへ再利用できる変更かを判定し、個別の異議を恒久的な禁止へ直接変換しない。"
 ---
 
 # Feedback to Criteria

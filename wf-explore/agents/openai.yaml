@@ -1,5 +1,5 @@
 interface:
-  display_name: "wf-explore"
+  display_name: "Workflow: Explore"
   short_description: "調査から実装計画と判断整理までを一体化"
   default_prompt: "$wf-explore を使って、コード変更前の事実、根拠、影響範囲、実装・テスト計画、pre-implementation review、開始可否、判断質問を一つの作業contextへまとめてください。承認までは実装しないでください。"
 

@@ -1,6 +1,6 @@
 ---
 name: subagent-execution
-description: subagentが委譲を受けたときに使う共通実行契約。委譲packetをauthorityとし、Assigned Scopeを広げず、成果と根拠を `done` または `blocked` で返す。Main Agentの委譲設計には使わない。
+description: "subagentが委譲を受けたときに使う共通実行契約。委譲packetをauthorityとし、Assigned Scopeを広げず、成果と根拠を `done` または `blocked` で返す。Main Agentの委譲設計には使わない。"
 ---
 
 # subagent-execution

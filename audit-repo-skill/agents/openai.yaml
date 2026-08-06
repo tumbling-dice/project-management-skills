@@ -1,5 +1,5 @@
 interface:
-  display_name: "audit-repo-skill"
+  display_name: "Audit Repo Skill"
   short_description: "repo内skill・agentを点検し、判断不要な修正まで行う"
   default_prompt: "$audit-repo-skill を使って、このrepo内のAGENTS.md、.agents/skills、.codex/agents、review routing、検証手順を監査してください。根拠から一意に決まる修正は適用し、判断が必要な項目は影響と戻り先を示してください。"
 

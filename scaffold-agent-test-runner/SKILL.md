@@ -1,6 +1,6 @@
 ---
 name: scaffold-agent-test-runner
-description: repo固有の検証専用 `test_runner` custom agentとverification Skill／文書を設計・作成する。コマンド、権限、artifact、timeout、失敗時の戻り先を調査するが、検証実行や修正は行わない。
+description: "repo固有の検証専用 `test_runner` custom agentとverification Skill／文書を設計・作成する。コマンド、権限、artifact、timeout、失敗時の戻り先を調査するが、検証実行や修正は行わない。"
 ---
 
 # scaffold-agent-test-runner

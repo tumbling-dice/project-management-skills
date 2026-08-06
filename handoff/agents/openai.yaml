@@ -1,5 +1,5 @@
 interface:
-  display_name: "handoff"
+  display_name: "Handoff"
   short_description: "作業成果物を次のAIセッション用packetに整理する"
   default_prompt: "$handoff を使って、現在の成果物を次のAIセッションがそのまま再開に使えるpacketへ圧縮してください。authority、must-read証跡、scope、未決事項、最初の操作、完了・停止条件を残してください。"
 

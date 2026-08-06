@@ -1,6 +1,6 @@
 ---
 name: scaffold-agent-reviewer
-description: repo固有の専門reviewer、pre-implementation review、reviewable gate、review routing用のSkillとcustom agentを設計・作成する。AGENTS、`.agents/skills`、`.codex/agents`、リスク領域を調査するが、差分review自体には使わない。
+description: "repo固有の専門reviewer、pre-implementation review、reviewable gate、review routing用のSkillとcustom agentを設計・作成する。AGENTS、`.agents/skills`、`.codex/agents`、リスク領域を調査するが、差分review自体には使わない。"
 ---
 
 # scaffold-agent-reviewer

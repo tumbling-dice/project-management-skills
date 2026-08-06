@@ -1,6 +1,6 @@
 ---
 name: migrate-workflow
-description: 成熟済みrepoのAGENTS、docs、repo-local Skill、custom agent、review／検証資材を共通workflowへ移す対応表を作る。対象ファイルは変更・削除せず、委譲、残置、分解、参照更新順、削除条件を計画する。
+description: "成熟済みrepoのAGENTS、docs、repo-local Skill、custom agent、review／検証資材を共通workflowへ移す対応表を作る。対象ファイルは変更・削除せず、委譲、残置、分解、参照更新順、削除条件を計画する。"
 ---
 
 # migrate-workflow

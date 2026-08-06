@@ -1,6 +1,6 @@
 ---
 name: idiot
-description: 既存の調査、計画、review、blocked理由から、進行を止める人間判断だけを回答可能な質問へ変換する。仕様相談、要件整理、仕様決定、実装、検証、review判定には使わない。
+description: "既存の調査、計画、review、blocked理由から、進行を止める人間判断だけを回答可能な質問へ変換する。仕様相談、要件整理、仕様決定、実装、検証、review判定には使わない。"
 ---
 
 # idiot

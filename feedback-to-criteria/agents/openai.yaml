@@ -2,4 +2,6 @@ interface:
   display_name: "Feedback to Criteria"
   short_description: "ユーザーからの否定や差戻しを、適切な判断基準と修正範囲へ変換する"
   default_prompt: "$feedback-to-criteria を使って、ユーザーのフィードバックを個別修正と再利用可能な判断基準に分け、今回の変更範囲を限定してください。"
-  brand_color: "#64748B"
+
+policy:
+  allow_implicit_invocation: true

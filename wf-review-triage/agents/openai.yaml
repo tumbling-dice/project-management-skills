@@ -1,5 +1,5 @@
 interface:
-  display_name: "wf-review-triage"
+  display_name: "Workflow: Review Triage"
   short_description: "review指摘を修正・再計画・調査・人間判断へ分類する"
   default_prompt: "$wf-review-triage を使って、review指摘を計画内修正、再検証、再計画、追加調査、専門review、人間判断、non-blockingへ分類し、根拠、scope、次のownerを返してください。実装はしないでください。"
 

@@ -1,6 +1,6 @@
 ---
 name: audit-workflow
-description: repoの `wf-*` workflowを一時worktree上の仮想Main Agentで完走検証し、repo-local不足をscaffold／audit Skillで補正する。親Main Agentは検証を直接実行せず、共通Skill側の不足は修正せずblockedで返す。
+description: "repoの `wf-*` workflowを一時worktree上の仮想Main Agentで完走検証し、repo-local不足をscaffold／audit Skillで補正する。親Main Agentは検証を直接実行せず、共通Skill側の不足は修正せずblockedで返す。"
 ---
 
 # audit-workflow

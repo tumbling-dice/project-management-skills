@@ -25,7 +25,8 @@
 ## 実装ルール
 
 - skill本文は簡潔にし、共通workflow、入力、禁止事項、出力形式を中心に書く。
-- descriptionは主要なtriggerと非対象範囲を先頭側に置き、表示時に短縮されてもroutingできる長さにする。
+- `SKILL.md` のfrontmatterにある `description` は日本語で記述し、値全体を常にダブルクォートで囲む。主要なtriggerと非対象範囲を先頭側に置き、表示時に短縮されてもroutingできる長さにする。
+- `agents/openai.yaml` の `interface.display_name` は、人が読む英語のTitle Caseで記述する。`policy.allow_implicit_invocation` は省略せず、Skillを暗黙に呼び出せるかを `true` または `false` で明記する。
 - promptやagent指示は、結果、必要なcontext、変更してはいけない境界、承認が必要な操作、成功条件、出力を明記する。手順自体が要件でない限り、細かな進め方を固定しない。
 - 同じ指示、trigger、承認条件を複数箇所で繰り返さない。安全なrepo内の読取、対象内編集、非破壊検証は止めず、外部書込み、破壊操作、費用発生、scopeの実質的拡張だけを確認対象にする。
 - 「短く」「簡潔に」だけで出力量を制御しない。結論、根拠、重要な留保、次の操作など残す情報と、省く背景や反復を指定する。

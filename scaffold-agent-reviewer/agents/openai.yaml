@@ -1,5 +1,5 @@
 interface:
-  display_name: "scaffold-agent-reviewer"
+  display_name: "Scaffold Agent Reviewer"
   short_description: "repo固有の専門reviewer定義を作る"
   default_prompt: "$scaffold-agent-reviewer を使って、repoのリスクと証跡要件から必要な専門review Skill、custom agent、reviewable gate、routingを設計・作成してください。差分review自体は行わないでください。"
 

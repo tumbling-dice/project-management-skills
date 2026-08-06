@@ -1,5 +1,5 @@
 interface:
-  display_name: "audit-workflow"
+  display_name: "Audit Workflow"
   short_description: "wf-*系workflowを仮想Main Agentで完走検証し自己改善する"
   default_prompt: "$audit-workflow を使って、repoの wf-* workflowを一時worktree上の仮想Main Agentで完走検証してください。親では実行せず、repo-local不足だけ補正し、共通Skill側の不足は根拠つきでblockedとして返してください。"
 

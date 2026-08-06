@@ -1,6 +1,6 @@
 ---
 name: audit-docs
-description: project文書、作業state、実装証跡の不整合を監査し、一意な文書修正やbackportまで行う。repo内Skill・custom agent監査、実装、検証、review判定には使わず、実PJでは `project_doc_auditor` へ委譲する。
+description: "project文書、作業state、実装証跡の不整合を監査し、一意な文書修正やbackportまで行う。repo内Skill・custom agent監査、実装、検証、review判定には使わず、実PJでは `project_doc_auditor` へ委譲する。"
 ---
 
 # audit-docs

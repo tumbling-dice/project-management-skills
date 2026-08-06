@@ -1,5 +1,5 @@
 interface:
-  display_name: "wf-implement"
+  display_name: "Workflow: Implement"
   short_description: "承認済み計画に沿って修正と再レビューを回す"
   default_prompt: "$wf-implement を使って、承認済み計画の範囲で実装、対応テスト、検証、audit-docs、wf-reviewを完了してください。計画内の指摘は再修正し、scope拡張や人間判断が必要なら停止して戻り先を示してください。"
 

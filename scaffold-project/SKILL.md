@@ -1,6 +1,6 @@
 ---
 name: scaffold-project
-description: 新規または文書が薄いPJへ、AGENTS、AI利用ルール、仕様・作業契約、短命な作業context、Reviewable Gate、初期検証文書を作る。通常実装、code review、成熟済みPJの更新には使わない。
+description: "新規または文書が薄いPJへ、AGENTS、AI利用ルール、仕様・作業契約、短命な作業context、Reviewable Gate、初期検証文書を作る。通常実装、code review、成熟済みPJの更新には使わない。"
 ---
 
 # scaffold-project

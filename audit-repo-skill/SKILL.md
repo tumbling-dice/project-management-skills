@@ -1,6 +1,6 @@
 ---
 name: audit-repo-skill
-description: repo内のAGENTS、Skill、custom agent、review routing、検証手順を監査し、一意修正まで行うが、新規scaffold、検証実行、review判定、移行計画はしない。Skill／agent公開前またはworkflow変更後に使う。
+description: "repo内のAGENTS、Skill、custom agent、review routing、検証手順を監査し、一意修正まで行うが、新規scaffold、検証実行、review判定、移行計画はしない。Skill／agent公開前またはworkflow変更後に使う。"
 ---
 
 # audit-repo-skill

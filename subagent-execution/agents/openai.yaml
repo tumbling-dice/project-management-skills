@@ -1,5 +1,5 @@
 interface:
-  display_name: "subagent-execution"
+  display_name: "Subagent Execution"
   short_description: "委譲scope内でdone／blockedを返す"
   default_prompt: "$subagent-execution を使って、委譲packetをauthorityとしてAssigned Scope内だけを実行し、成果と根拠をdoneまたはblockedで返してください。"
 

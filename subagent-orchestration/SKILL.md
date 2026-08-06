@@ -1,6 +1,6 @@
 ---
 name: subagent-orchestration
-description: Main Agentがsubagentへ独立した作業を委譲するときに使う共通契約。ownership、context handoff、delegation packet、`done`／`blocked`、steering、wait、stale resultを定める。subagent側の実行には使わない。
+description: "Main Agentがsubagentへ独立した作業を委譲するときに使う共通契約。ownership、context handoff、delegation packet、`done`／`blocked`、steering、wait、stale resultを定める。subagent側の実行には使わない。"
 ---
 
 # subagent-orchestration

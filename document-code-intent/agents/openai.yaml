@@ -2,3 +2,6 @@ interface:
   display_name: "Document Code Intent"
   short_description: "現在のコード意図を記録し、作業指示の差分説明を避ける"
   default_prompt: "$document-code-intentを使って、作業指示や変更前後の説明を含めず、現在の責務と契約、各テストの目的・対象・前提を記録してください。"
+
+policy:
+  allow_implicit_invocation: true

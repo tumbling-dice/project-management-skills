@@ -1,5 +1,5 @@
 interface:
-  display_name: "migrate-workflow"
+  display_name: "Migrate Workflow"
   short_description: "成熟済みrepoの運用資産を共通workflowへ移す計画を作る"
   default_prompt: "$migrate-workflow を使って、このrepoの運用資産を共通workflowへ移す対応表を作ってください。対象ファイルは変更せず、委譲・残置・分解、参照更新順、削除条件、共通側不足、人間判断を整理してください。"
 

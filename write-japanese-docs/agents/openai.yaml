@@ -1,7 +1,7 @@
 interface:
   display_name: "Write Japanese Docs"
-  short_description: "読み手の判断と行動につながる日本語文書を作成・改訂する"
-  default_prompt: "$write-japanese-docsを使い、読者と用途に合わせてこの日本語文書を読みやすく改訂してください。"
+  short_description: "書き手と読み手を固定して日本語文書を作成・改訂する"
+  default_prompt: "$write-japanese-docsを使い、書き手と読み手の関係を固定して、この日本語文書を作成または改訂してください。"
 
 policy:
   allow_implicit_invocation: true

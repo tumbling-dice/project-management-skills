@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# This test protects the distinct current discovery roots for skills and Codex custom agents.
+# Purpose: Ensure every representative shared artifact is discoverable without changing the filesystem.
+# Target: The dry-run destinations produced by scripts/install.sh for skills and Codex custom agents.
+# Precondition: HOME and CODEX_HOME point to an empty temporary tree.
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 test_root="$(mktemp -d)"
 trap 'rm -rf "$test_root"' EXIT
@@ -22,6 +24,8 @@ output="$(HOME="$test_root/home" CODEX_HOME="$test_root/codex" "$repo_root/scrip
 
 assert_contains "$output" "$test_root/home/.agents/skills/wf-explore"
 assert_contains "$output" "$test_root/home/.agents/skills/review-tests"
+assert_contains "$output" "$test_root/home/.agents/skills/iterate-japanese-docs"
+assert_contains "$output" "$test_root/codex/agents/japanese_doc_reviewer.toml"
 assert_contains "$output" "$test_root/codex/agents/project_doc_auditor.toml"
 assert_contains "$output" "$test_root/codex/agents/test_reviewer.toml"
 

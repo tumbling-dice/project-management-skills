@@ -7,11 +7,18 @@
 | 資材 | 内容 |
 | --- | --- |
 | Agent Skill | いつ使うか、何を根拠にするか、どこまで変更できるか、何を返すかを記述した指示書 |
-| Codex custom agent | Skillから独立した役割へ作業を委譲するためのCodex設定。このリポジトリでは文書監査とテスト内容の確認を読み取り専用で担当する |
+| Codex custom agent | Skillから独立した役割へ作業を委譲するためのCodex設定。このリポジトリでは文書監査、日本語文書の推敲確認、テスト内容の確認を読み取り専用で担当する |
 
 ## インストールする
 
-このリポジトリを、開発中のプロジェクトとは別の任意の場所へ `git clone` してください。`git clone` の完了後、この `README.md` があるディレクトリへ移動し、使用するOSに対応したコマンドを実行してください。配置内容だけを確認する場合はdry runを使ってください。dry runではディレクトリやファイルを作りません。
+このリポジトリを、開発中のプロジェクトとは別の任意の場所へcloneしてください。
+
+```bash
+git clone git@github.com:tumbling-dice/project-management-skills.git
+cd project-management-skills
+```
+
+clone後、使用するOSに対応したコマンドを実行してください。配置内容だけを確認する場合はdry runを使ってください。dry runではディレクトリやファイルを作りません。
 
 | OS | dry run | インストール |
 | --- | --- | --- |
@@ -32,7 +39,7 @@ Linux / macOSでは、シンボリックリンクを通じてこのリポジト�
 
 ## Skillを呼び出す
 
-Skill名を `$skill-name` の形式でプロンプトに書くと、そのSkillを明示的に呼び出せます。工程を進める `wf-*`、作業を引き継ぐ `handoff`、実装済みテストをレビューする `review-tests` は、ユーザーまたは上流のSkillが名前を明示した場合だけ使います。
+Skill名を `$skill-name` の形式でプロンプトに書くと、そのSkillを明示的に呼び出せます。工程を進める `wf-*`、日本語文書のレビューと修正を反復する `iterate-japanese-docs`、作業を引き継ぐ `handoff` は、ユーザーまたは上流のSkillが名前を明示した場合だけ使います。`review-tests` は、`wf-review` が実装済みのテスト差分を渡した場合だけ使います。
 
 それ以外のSkillは、依頼内容がSkillの利用条件と一致する場合に自動で選ばれることがあります。迷う場合は、一覧から目的に合うSkillを選び、名前を明示してください。
 
@@ -80,6 +87,7 @@ $wf-explore（調査と計画）
 | --- | --- |
 | [`document-code-intent`](document-code-intent/) | 実装変更に合わせ、現在のコードとテストの責務、契約、前提、設計理由をコメントへ記録する。 |
 | [`write-japanese-docs`](write-japanese-docs/) | 書き手と読み手の関係を固定し、根拠に沿った日本語文書を作成または改訂する。 |
+| [`iterate-japanese-docs`](iterate-japanese-docs/) | 日本語文書の全文レビューを `japanese_doc_reviewer` へ委譲し、根拠から一意に決まる指摘を修正して合格まで反復する。 |
 | [`feedback-to-criteria`](feedback-to-criteria/) | ユーザーの訂正や差戻しを、今回の修正と再利用可能な判断基準へ分ける。 |
 | [`idiot`](idiot/) | 調査結果や作業停止理由から、人間が答える必要のある判断だけを質問へ変える。 |
 | [`handoff`](handoff/) | 作業根拠、実行結果、未確認事項、変更しない範囲、次の担当を引き継ぎ情報へまとめる。 |
@@ -112,11 +120,12 @@ $wf-explore（調査と計画）
 
 ## Custom agent
 
-`agents/` では、共通工程から呼び出すCodex custom agentを管理します。現在の二つのagentは読み取り専用で、ファイル修正や検証コマンドの実行を行いません。
+`agents/` では、共通工程またはユーザーの明示的な依頼から呼び出すCodex custom agentを管理します。各agentは読み取り専用で、ファイル修正や検証コマンドの実行を行いません。`japanese_doc_reviewer` は `$write-japanese-docs` の終了後に自動では呼び出されず、ユーザーまたはMain Agentがレビューを明示的に依頼した場合だけ使います。`iterate-japanese-docs` は、Main Agentから委譲する経路の一つです。
 
 | Agent | 呼出し元 | 役割 |
 | --- | --- | --- |
 | [`project_doc_auditor`](agents/project_doc_auditor.toml) | `audit-docs` | 文書と実装・検証記録の矛盾、古い前提、未決事項、長期文書へ反映する候補を監査する。 |
+| [`japanese_doc_reviewer`](agents/japanese_doc_reviewer.toml) | ユーザーまたはMain Agentの明示的な依頼 | `$write-japanese-docs` で作成または改訂した各ファイルの全文が、日本語文書の執筆規範に適合するか確認する。 |
 | [`test_reviewer`](agents/test_reviewer.toml) | `wf-review` / `review-tests` | 実装済みテストの判定内容、境界、不自然な弱体化、実行ごとの不安定さをレビューする。 |
 
 ## リポジトリを保守する

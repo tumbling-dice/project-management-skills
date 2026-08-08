@@ -1,0 +1,7 @@
+interface:
+  display_name: "Iterate Japanese Docs"
+  short_description: "日本語文書を全文レビューし、指摘修正を合格まで安全に繰り返す"
+  default_prompt: "$iterate-japanese-docs を使い、対象の日本語文書をレビューし、指摘を修正して合格するまで反復してください。"
+
+policy:
+  allow_implicit_invocation: false
